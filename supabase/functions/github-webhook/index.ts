@@ -9,10 +9,11 @@ const FILE_TABLE_MAP: Record<string, string> = {
 
 serve(async (req) => {
   try {
-    const signature = req.headers.get("x-hub-signature-256");
-    if (!signature) {
-      return new Response("No signature found", { status: 400 });
-    }
+    // Optional: If you add a secret in GitHub Webhooks, uncomment the check below
+    // const signature = req.headers.get("x-hub-signature-256");
+    // if (!signature) {
+    //   return new Response("No signature found", { status: 400 });
+    // }
 
     const bodyText = await req.text();
     const payload = JSON.parse(bodyText);
