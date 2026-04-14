@@ -1,0 +1,15 @@
+lifelink/
+├── package.json
+├── public/index.html
+├── supabase_schema.sql       ← full SQL to run in Supabase SQL editor
+├── README.md                 ← step-by-step setup instructions
+└── src/
+    ├── index.js
+    ├── App.jsx               ← view switcher (hospital / donor)
+    ├── lib/supabase.js       ← supabase client (URL + anon key as placeholders)
+    ├── hooks/
+    │   ├── useRequests.js    ← fetch + realtime subscribe to blood_requests + donor_responses
+    │   └── useDonors.js      ← fetch donors and hospitals
+    └── components/
+        ├── HospitalDashboard.jsx
+        └── DonorDashboard.jsx
