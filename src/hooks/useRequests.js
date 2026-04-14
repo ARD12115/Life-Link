@@ -1,11 +1,20 @@
-import { useState, useEffect } from 'react'
+// src/hooks/useRequests.js
+
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function useRequests() {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const isMounted = useRef(true)
+  const lastFetchTime = useRef(0)
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
+    // Throttling to prevent network storms (max once per 1s)
+    const now = Date.now()
+    if (now - lastFetchTime.current < 1000) return
+    lastFetchTime.current = now
+
     const { data, error } = await supabase
       .from('blood_requests')
       .select(`
@@ -18,15 +27,20 @@ export function useRequests() {
       `)
       .order('created_at', { ascending: false })
 
-    if (!error) setRequests(data || [])
-    setLoading(false)
-  }
+    if (!error && isMounted.current) {
+      setRequests(data || [])
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
+    isMounted.current = true
     fetchRequests()
 
     const channel = supabase
       .channel('blood_requests_realtime')
+      // For blood_requests updates, we can often just re-fetch as they are the primary entity
+      // but we throttle it to ensure efficiency.
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'blood_requests' },
         fetchRequests
@@ -37,8 +51,11 @@ export function useRequests() {
       )
       .subscribe()
 
-    return () => supabase.removeChannel(channel)
-  }, [])
+    return () => {
+      isMounted.current = false
+      supabase.removeChannel(channel)
+    }
+  }, [fetchRequests])
 
   return { requests, loading, refetch: fetchRequests }
 }

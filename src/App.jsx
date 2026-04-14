@@ -1,58 +1,102 @@
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import HospitalDashboard from './components/HospitalDashboard'
 import DonorDashboard    from './components/DonorDashboard'
+import VisualEnvironment from './components/VisualEnvironment'
+import Auth              from './components/Auth'
+import { useTheme }      from './context/ThemeContext'
+import { supabase }      from './lib/supabase'
+import { Sun, Moon, Monitor, Hospital, Heart, LogOut } from 'lucide-react'
 
 const VIEWS = [
-  { key: 'hospital', label: '🏥  Hospital staff', activeColor: '#c0392b', activeBg: '#fff1f0' },
-  { key: 'donor',    label: '🩸  Blood donor',    activeColor: '#185fa5', activeBg: '#edf4fc' },
+  { key: 'hospital', label: 'Hospital', icon: <Hospital size={16} /> },
+  { key: 'donor',    label: 'Donor',    icon: <Heart size={16} /> },
+]
+
+const THEMES = [
+  { key: 'light',  icon: <Sun size={14} />,     label: 'Light' },
+  { key: 'dark',   icon: <Moon size={14} />,    label: 'Dark' },
+  { key: 'system', icon: <Monitor size={14} />, label: 'System' },
 ]
 
 export default function App() {
   const [view, setView] = useState('hospital')
+  const [session, setSession] = useState(null)
+  const { theme, setTheme } = useTheme()
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleLogout = () => supabase.auth.signOut()
 
   return (
-    <div>
-      {/* ── Sticky top switcher ── */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: '#111', display: 'flex',
-        alignItems: 'center', justifyContent: 'center',
-        gap: 6, padding: '9px 16px',
-        boxShadow: '0 1px 0 rgba(255,255,255,0.05)',
-      }}>
-        <span style={{ color: '#555', fontSize: 11, marginRight: 6, letterSpacing: '0.04em' }}>
-          VIEW AS
-        </span>
+    <div className="app-container">
+      <VisualEnvironment />
 
-        {VIEWS.map(v => (
-          <button
-            key={v.key}
-            onClick={() => setView(v.key)}
-            style={{
-              padding: '5px 18px',
-              borderRadius: 20,
-              fontSize: 12,
-              fontWeight: 500,
-              cursor: 'pointer',
-              border: 'none',
-              transition: 'all 0.18s',
-              background: view === v.key ? v.activeBg : 'transparent',
-              color:      view === v.key ? v.activeColor : '#666',
-              boxShadow:  view === v.key ? `0 0 0 1px ${v.activeColor}33` : 'none',
-            }}>
-            {v.label}
+      <main style={{ paddingBottom: '100px', minHeight: '100vh' }}>
+        {!session ? (
+          <Auth />
+        ) : (
+          view === 'hospital' ? <HospitalDashboard user={session.user} /> : <DonorDashboard user={session.user} />
+        )}
+      </main>
+
+      {session && (
+        <div className="floating-nav">
+          <div style={{ display: 'flex', borderRight: '1px solid var(--glass-border)', paddingRight: '8px', marginRight: '8px' }}>
+            {VIEWS.map(v => (
+              <button
+                key={v.key}
+                onClick={() => setView(v.key)}
+                className={`nav-item ${view === v.key ? 'active' : ''}`}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {v.icon}
+                  {v.label}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '4px', borderRight: '1px solid var(--glass-border)', paddingRight: '8px', marginRight: '8px' }}>
+            {THEMES.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTheme(t.key)}
+                title={`${t.label} mode`}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: theme === t.key ? 'var(--bg-secondary)' : 'transparent',
+                  color: theme === t.key ? 'var(--blood-ruby)' : 'var(--text-secondary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'var(--transition-smooth)',
+                  boxShadow: theme === t.key ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
+                }}
+              >
+                {t.icon}
+              </button>
+            ))}
+          </div>
+
+          <button onClick={handleLogout} className="nav-item" style={{ color: 'var(--text-secondary)' }}>
+            <LogOut size={16} />
           </button>
-        ))}
-
-        <span style={{ color: '#333', fontSize: 10, marginLeft: 10, letterSpacing: '0.03em' }}>
-          Switch to see realtime sync across tabs
-        </span>
-      </div>
-
-      {/* ── Dashboard ── */}
-      {view === 'hospital'
-        ? <HospitalDashboard />
-        : <DonorDashboard />}
+        </div>
+      )}
     </div>
   )
 }

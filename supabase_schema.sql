@@ -1,9 +1,9 @@
--- Life Link Database Schema (Protected Version)
--- This file defines the structure of the database without any hardcoded data.
+-- Life Link Database Schema (Security Hardened)
 
 -- Donors Table
 create table if not exists donors (
   id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users,
   name text not null,
   blood_group text not null check (blood_group in ('A+','A-','B+','B-','O+','O-','AB+','AB-')),
   city text not null,
@@ -17,6 +17,7 @@ create table if not exists donors (
 -- Hospitals Table
 create table if not exists hospitals (
   id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users,
   name text not null,
   city text not null,
   contact_person text,
@@ -59,13 +60,26 @@ alter publication supabase_realtime add table blood_requests;
 alter publication supabase_realtime add table donor_responses;
 
 -- Row Level Security (RLS)
--- NOTE: In a production environment, these should be restricted using Supabase Auth.
 alter table donors          enable row level security;
 alter table hospitals       enable row level security;
 alter table blood_requests  enable row level security;
 alter table donor_responses enable row level security;
 
-create policy "allow all donors"    on donors          for all using (true) with check (true);
-create policy "allow all hospitals" on hospitals       for all using (true) with check (true);
-create policy "allow all requests"  on blood_requests  for all using (true) with check (true);
-create policy "allow all responses" on donor_responses for all using (true) with check (true);
+-- Donors: Owner can manage
+create policy "donors_owner_access" on donors for all using (auth.uid() = user_id);
+
+-- Hospitals: Owner can manage, everyone can see names/locations
+create policy "hospitals_owner_access" on hospitals for all using (auth.uid() = user_id);
+create policy "public_hospitals_view" on hospitals for select using (true);
+
+-- Requests: Anyone can see, hospitals can manage their own
+create policy "public_requests_view" on blood_requests for select using (true);
+create policy "hospitals_manage_requests" on blood_requests for all using (
+  exists (select 1 from hospitals where id = blood_requests.hospital_id and user_id = auth.uid())
+);
+
+-- Responses: Public see, owners manage their reactions
+create policy "public_responses_view" on donor_responses for select using (true);
+create policy "donors_manage_responses" on donor_responses for all using (
+  exists (select 1 from donors where id = donor_responses.donor_id and user_id = auth.uid())
+);
