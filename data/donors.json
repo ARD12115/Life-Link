@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Rahul Kumar",
+    "blood_group": "B+",
+    "city": "Manipal",
+    "phone": "+91 91234 56789",
+    "available": true,
+    "last_donated": "2024-01-15",
+    "total_donations": 7
+  },
+  {
+    "name": "Priya Menon",
+    "blood_group": "O+",
+    "city": "Manipal",
+    "phone": "+91 91234 56790",
+    "available": true,
+    "last_donated": "2023-12-15",
+    "total_donations": 3
+  },
+  {
+    "name": "Arjun Shetty",
+    "blood_group": "B+",
+    "city": "Manipal",
+    "phone": "+91 91234 56791",
+    "available": true,
+    "last_donated": "2024-02-15",
+    "total_donations": 5
+  },
+  {
+    "name": "Kavya Nair",
+    "blood_group": "AB+",
+    "city": "Udupi",
+    "phone": "+91 91234 56792",
+    "available": true,
+    "last_donated": "2023-09-25",
+    "total_donations": 2
+  },
+  {
+    "name": "Deepak Rao",
+    "blood_group": "O-",
+    "city": "Manipal",
+    "phone": "+91 91234 56793",
+    "available": false,
+    "last_donated": "2024-03-15",
+    "total_donations": 12
+  },
+  {
+    "name": "Sneha Pai",
+    "blood_group": "A+",
+    "city": "Mangalore",
+    "phone": "+91 91234 56794",
+    "available": true,
+    "last_donated": "2023-11-15",
+    "total_donations": 4
+  }
+]
