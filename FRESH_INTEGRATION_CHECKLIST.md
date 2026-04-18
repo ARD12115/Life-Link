@@ -120,14 +120,14 @@ VALUES
 # Build the app
 npm run build
 
-# Push to GitHub (already done!)
+# Push to GitHub
 git push origin main
 
 # Go to vercel.com
 # Click "New Project" → Import your GitHub repo
 # Set environment variables:
-#   REACT_APP_SUPABASE_URL=https://hqdiqjswknukqyghtgsa.supabase.co
-#   REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+#   REACT_APP_SUPABASE_URL=https://[your-project-id].supabase.co
+#   REACT_APP_SUPABASE_PUBLISHABLE_KEY=[your-publishable-key]
 # Click Deploy
 ```
 
@@ -169,8 +169,8 @@ git push origin main
 | Link | Purpose |
 |------|---------|
 | http://localhost:3000 | Local app |
-| https://github.com/1LifeLink1/LifeLink | GitHub repo |
-| https://app.supabase.com/project/hqdiqjswknukqyghtgsa | Supabase dashboard |
+| https://github.com/[your-username]/LifeLink | GitHub repo |
+| https://app.supabase.com/project/[your-project-id] | Supabase dashboard |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | If something breaks |
 | [README.md](README.md) | Project overview |
 | [Prompt.txt](Prompt.txt) | Full context for AI helpers |
@@ -247,7 +247,7 @@ npm start
 
 When app loads, you should see:
 ```
-✅ Supabase URL: https://hqdiqjswknukqyghtgsa.supabase.co
+✅ Supabase URL: https://[your-project-id].supabase.co
 ✅ Key Loaded: YES
 📡 Fetching blood requests...
 👥 Fetching donors...

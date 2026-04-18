@@ -3,8 +3,8 @@
 ## Project Details
 
 - **Project Name**: LifeLink
-- **Project ID**: hqdiqjswknukqyghtgsa
-- **Project URL**: https://hqdiqjswknukqyghtgsa.supabase.co
+- **Project ID**: `[your-project-id]` (find in Supabase Dashboard → Settings → General)
+- **Project URL**: `https://[your-project-id].supabase.co`
 - **Status**: ✅ Fully configured and ready
 
 ---
@@ -20,7 +20,7 @@ Your Supabase project is already set up with:
 
 **Check Status:**
 1. Go to https://supabase.com/dashboard
-2. Open project `hqdiqjswknukqyghtgsa`
+2. Open your project (find ID in Settings → General)ngs → General)
 3. Look for green **"Connected"** status in top bar
 
 ---
@@ -105,11 +105,19 @@ Realtime is enabled on core tables:
 
 Your `.env` file contains:
 ```
-REACT_APP_SUPABASE_URL=https://hqdiqjswknukqyghtgsa.supabase.co
-REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+REACT_APP_SUPABASE_URL=https://your-project-id.supabase.co
+REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_anon_key
 ```
 
-**Note:** These are public keys (safe to commit). Sensitive operations use RLS.
+**⚠️ Important Notes:**
+- Replace `your-project-id` with your actual project ID from Supabase Dashboard
+- The **Anon/Publishable Key** can be committed (it's public-facing)
+- Never commit your **Service Role Key** (that's private!)
+- All sensitive operations are protected by Row-Level Security policies
+- Replace `your-project-id` with your actual project ID from Supabase Dashboard
+- The **Anon/Publishable Key** can be committed (it's public-facing)
+- Never commit your **Service Role Key** (that's private!)
+- All sensitive operations are protected by Row-Level Security policies
 
 ### Get Fresh Keys (if needed):
 1. Go to **Settings** → **API**
@@ -250,16 +258,18 @@ Before deploying to production:
 - [ ] No secrets committed to git (.env in .gitignore)
 - [ ] App builds successfully (`npm run build`)
 
----
-
-## 🔗 Quick Reference Links
-
-- **Dashboard**: https://app.supabase.com/project/hqdiqjswknukqyghtgsa
-- **SQL Editor**: https://app.supabase.com/project/hqdiqjswknukqyghtgsa/sql/new
-- **Tables**: https://app.supabase.com/project/hqdiqjswknukqyghtgsa/editor
-- **Auth Users**: https://app.supabase.com/project/hqdiqjswknukqyghtgsa/auth/users
-- **Policies**: https://app.supabase.com/project/hqdiqjswknukqyghtgsa/auth/policies
-- **API Keys**: https://app.supabase.com/project/hqdiqjswknukqyghtgsa/settings/api
+Replace `[your-project-id]` with your actual project ID:
+- **Dashboard**: `https://app.supabase.com/project/[your-project-id]`
+- **SQL Editor**: `https://app.supabase.com/project/[your-project-id]/sql/new`
+- **Tables**: `https://app.supabase.com/project/[your-project-id]/editor`
+- **Auth Users**: `https://app.supabase.com/project/[your-project-id]/auth/users`
+- **Policies**: `https://app.supabase.com/project/[your-project-id]/auth/policies`
+- **API Keys**: `https://app.supabase.com/project/[your-project-id]/settings/api`
+- **SQL Editor**: `https://app.supabase.com/project/[your-project-id]/sql/new`
+- **Tables**: `https://app.supabase.com/project/[your-project-id]/editor`
+- **Auth Users**: `https://app.supabase.com/project/[your-project-id]/auth/users`
+- **Policies**: `https://app.supabase.com/project/[your-project-id]/auth/policies`
+- **API Keys**: `https://app.supabase.com/project/[your-project-id]/settings/api`
 
 ---
 

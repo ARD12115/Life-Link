@@ -86,15 +86,19 @@ F12
 
 ## 🌐 Supabase Project Quick Links
 
-**Project ID:** `hqdiqjswknukqyghtgsa`
+**Find your Project ID in Supabase Dashboard → Settings → General**
 
 | Link | Use |
 |------|---|
-| [SQL Editor](https://app.supabase.com/project/hqdiqjswknukqyghtgsa/sql/new) | Run queries, test data |
-| [Tables](https://app.supabase.com/project/hqdiqjswknukqyghtgsa/editor) | View/edit data, enable Realtime |
-| [RLS Policies](https://app.supabase.com/project/hqdiqjswknukqyghtgsa/auth/policies) | Check security policies |
-| [Auth Users](https://app.supabase.com/project/hqdiqjswknukqyghtgsa/auth/users) | See registered users |
-| [API Keys](https://app.supabase.com/project/hqdiqjswknukqyghtgsa/settings/api) | View project credentials |
+| SQL Editor | https://app.supabase.com/project/[your-project-id]/sql/new |
+| Tables | https://app.supabase.com/project/[your-project-id]/editor |
+| RLS Policies | https://app.supabase.com/project/[your-project-id]/auth/policies |
+| Auth Users | https://app.supabase.com/project/[your-project-id]/auth/users |
+| API Keys | https://app.supabase.com/project/[your-project-id]/settings/api |
+
+**⚠️ Never commit your actual Project ID or API keys to GitHub!**
+
+**⚠️ Never commit your actual Project ID or API keys to GitHub!**
 
 ---
 

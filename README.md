@@ -24,9 +24,13 @@ Life Link connects hospitals that need blood **right now** with available, match
 
 Your `.env` file already contains:
 ```
-REACT_APP_SUPABASE_URL=https://hqdiqjswknukqyghtgsa.supabase.co
+REACT_APP_SUPABASE_URL=https://your-project-id.supabase.co
 REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
+
+**⚠️ Important:** Replace `your-project-id` with your actual Supabase project ID from the dashboard. Never commit real credentials to GitHub.
+
+**⚠️ Important:** Replace `your-project-id` with your actual Supabase project ID from the dashboard. Never commit real credentials to GitHub.
 
 **Note:** These are public keys (safe to commit). Sensitive operations use Row-Level Security policies.
 
@@ -175,9 +179,9 @@ No page refresh required — Supabase Realtime pushes all changes.
 
 ---
 
-## 🔗 Resources
+## 🔗 Resources`https://app.supabase.com/project/[your-project-id]`
 
-- Supabase Project: https://app.supabase.com/project/hqdiqjswknukqyghtgsa
+- Supabase Project: `https://app.supabase.com/project/[your-project-id]`
 - GitHub Repository: https://github.com/1LifeLink1/LifeLink
 - React Documentation: https://react.dev
 - Supabase Documentation: https://supabase.com/docs

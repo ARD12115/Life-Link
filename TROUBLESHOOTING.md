@@ -38,7 +38,7 @@ npm start
 
 ### Step 1: Check Supabase Project
 1. Go to https://supabase.com/dashboard
-2. Open project: `hqdiqjswknukqyghtgsa`
+2. Open your project (find ID in Settings → General)
 3. Click **SQL Editor**
 4. Run this query:
 ```sql

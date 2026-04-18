@@ -163,7 +163,7 @@ Hospital Dashboard OR Donor Dashboard
 | Metric | Value |
 |--------|-------|
 | React Version | 18 |
-| Supabase Project | hqdiqjswknukqyghtgsa |
+| Supabase Project | [your-project-id] |
 | Database Tables | 5 |
 | RLS Policies | 9 |
 | Auth Method | Magic Link OTP |
@@ -176,7 +176,7 @@ Hospital Dashboard OR Donor Dashboard
 ## 💾 Environment Variables
 
 ```
-REACT_APP_SUPABASE_URL=https://hqdiqjswknukqyghtgsa.supabase.co
+REACT_APP_SUPABASE_URL=https://[your-project-id].supabase.co
 REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
@@ -187,7 +187,7 @@ REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ## 📚 Quick Links
 
 - **App:** http://localhost:3000
-- **Supabase Dashboard:** https://app.supabase.com/project/hqdiqjswknukqyghtgsa
+- **Supabase Dashboard:** https://app.supabase.com/project/[your-project-id]
 - **GitHub:** https://github.com/1LifeLink1/LifeLink
 - **Troubleshooting:** [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - **Setup Guide:** [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md)
