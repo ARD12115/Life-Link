@@ -239,9 +239,10 @@ export default function DonorDashboard({ user }) {
               <p style={{ color: 'var(--text-secondary)' }}>No matching emergency alerts right now.</p>
             </div>
           ) : (
-            myResponses.map(({ response, request }) => (
-              <AlertCard key={response.id} response={response} request={request} onRespond={refetch} />
-            ))
+            myResponses.map(({ response, request }) => {
+              if (!request || !response) return null
+              return <AlertCard key={response.id} response={response} request={request} onRespond={refetch} />
+            })
           )}
         </section>
       </div>

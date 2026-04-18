@@ -316,7 +316,8 @@ export default function HospitalDashboard({ user }) {
           </div>
         )}
 
-        {myRequests.map(req => {
+        {!loading && myRequests.map(req => {
+          if (!req || !req.id) return null
           const isOpen = expandedId === req.id
           const urgencyClass = URGENCY_CLASSES[req.urgency] || ''
 

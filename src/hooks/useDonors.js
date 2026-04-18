@@ -19,7 +19,8 @@ export function useDonors() {
       
       if (fetchError) {
         console.error('❌ Error fetching donors:', fetchError)
-        setError(fetchError.message)
+        setError(typeof fetchError === 'string' ? fetchError : fetchError.message || 'Failed to fetch donors')
+        if (isMounted.current) setLoading(false)
         return
       }
 
@@ -31,7 +32,8 @@ export function useDonors() {
       }
     } catch (err) {
       console.error('❌ Unexpected error fetching donors:', err)
-      setError(err.message)
+      setError(typeof err === 'string' ? err : err.message || 'Unexpected error')
+      if (isMounted.current) setLoading(false)
     }
   }, [])
 
@@ -85,7 +87,8 @@ export function useHospitals() {
         
         if (fetchError) {
           console.error('❌ Error fetching hospitals:', fetchError)
-          setError(fetchError.message)
+          setError(typeof fetchError === 'string' ? fetchError : fetchError.message || 'Failed to fetch hospitals')
+          setLoading(false)
           return
         }
 
@@ -94,7 +97,7 @@ export function useHospitals() {
         setError(null)
       } catch (err) {
         console.error('❌ Unexpected error fetching hospitals:', err)
-        setError(err.message)
+        setError(typeof err === 'string' ? err : err.message || 'Unexpected error')
       } finally {
         setLoading(false)
       }

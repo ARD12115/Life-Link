@@ -32,7 +32,8 @@ export function useRequests() {
 
       if (fetchError) {
         console.error('❌ Error fetching requests:', fetchError)
-        setError(fetchError.message)
+        setError(typeof fetchError === 'string' ? fetchError : fetchError.message || 'Failed to fetch requests')
+        setLoading(false)
         return
       }
 
@@ -44,7 +45,8 @@ export function useRequests() {
       }
     } catch (err) {
       console.error('❌ Unexpected error fetching requests:', err)
-      setError(err.message)
+      setError(typeof err === 'string' ? err : err.message || 'Unexpected error')
+      if (isMounted.current) setLoading(false)
     }
   }, [])
 
