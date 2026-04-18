@@ -28,6 +28,7 @@
     ]
   },
   "devDependencies": {
+    "markdownlint-cli": "^0.48.0",
     "prisma": "^5.17.0"
   }
 }

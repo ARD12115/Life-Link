@@ -54,7 +54,8 @@
 
 - [x] Git initialized and configured
 - [x] .gitignore set up (excludes .env, node_modules, build, secrets)
-- [x] Code committed with message: "feat: Add secure Supabase integration with role-based auth..."
+- [x] Code committed with message: "feat: Add secure Supabase integration with
+  role-based auth..."
 - [x] Code pushed to GitHub: <https://github.com/1LifeLink1/LifeLink>
 - [x] GitHub repository synced (origin/main)
 
@@ -218,7 +219,7 @@ Your LifeLink application is:
 - ✅ Pushed to GitHub for version control
 - ✅ Ready to test and deploy
 
-**Next: Open http://localhost:3000 and test the app!**
+**Next: Open <http://localhost:3000> and test the app!**
 
 ## 📱 How to Test It Works
 
@@ -269,7 +270,7 @@ npm start
 
 When app loads, you should see:
 
-```
+```console
 ✅ Supabase URL: https://[your-project-id].supabase.co
 ✅ Key Loaded: YES
 📡 Fetching blood requests...
