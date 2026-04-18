@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import HospitalDashboard from './components/HospitalDashboard'
 import DonorDashboard    from './components/DonorDashboard'
+import RoleSelector      from './components/RoleSelector'
 import VisualEnvironment from './components/VisualEnvironment'
 import Auth              from './components/Auth'
+import DebugDashboard    from './components/DebugDashboard'
 import { useTheme }      from './context/ThemeContext'
 import { supabase }      from './lib/supabase'
-import { Sun, Moon, Monitor, Hospital, Heart, LogOut } from 'lucide-react'
-
-const VIEWS = [
-  { key: 'hospital', label: 'Hospital', icon: <Hospital size={16} /> },
-  { key: 'donor',    label: 'Donor',    icon: <Heart size={16} /> },
-]
+import { Sun, Moon, Monitor, LogOut } from 'lucide-react'
 
 const THEMES = [
   { key: 'light',  icon: <Sun size={14} />,     label: 'Light' },
@@ -19,17 +16,41 @@ const THEMES = [
 ]
 
 export default function App() {
-  const [view, setView] = useState('hospital')
   const [session, setSession] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(true)
   const { theme, setTheme } = useTheme()
 
   useEffect(() => {
+    const loadProfile = async (user) => {
+      if (!user) {
+        setProfile(null)
+        setProfileLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading profile:', error)
+      }
+
+      setProfile(data || null)
+      setProfileLoading(false)
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
+      loadProfile(session?.user)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      loadProfile(session?.user)
     })
 
     return () => subscription.unsubscribe()
@@ -40,32 +61,26 @@ export default function App() {
   return (
     <div className="app-container">
       <VisualEnvironment />
+      {process.env.NODE_ENV === 'development' && <DebugDashboard />}
 
       <main style={{ paddingBottom: '100px', minHeight: '100vh' }}>
         {!session ? (
           <Auth />
+        ) : profileLoading ? (
+          <div className="loading-text">Loading your secure profile...</div>
+        ) : !profile ? (
+          <RoleSelector user={session.user} onProfileCreated={setProfile} />
+        ) : profile.role === 'hospital' ? (
+          <HospitalDashboard user={session.user} profile={profile} />
+        ) : profile.role === 'donor' ? (
+          <DonorDashboard user={session.user} profile={profile} />
         ) : (
-          view === 'hospital' ? <HospitalDashboard user={session.user} /> : <DonorDashboard user={session.user} />
+          <div className="loading-text">Role not recognized. Contact support.</div>
         )}
       </main>
 
       {session && (
         <div className="floating-nav">
-          <div style={{ display: 'flex', borderRight: '1px solid var(--glass-border)', paddingRight: '8px', marginRight: '8px' }}>
-            {VIEWS.map(v => (
-              <button
-                key={v.key}
-                onClick={() => setView(v.key)}
-                className={`nav-item ${view === v.key ? 'active' : ''}`}
-              >
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {v.icon}
-                  {v.label}
-                </span>
-              </button>
-            ))}
-          </div>
-
           <div style={{ display: 'flex', gap: '4px', borderRight: '1px solid var(--glass-border)', paddingRight: '8px', marginRight: '8px' }}>
             {THEMES.map(t => (
               <button

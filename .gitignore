@@ -1,3 +1,41 @@
+# Environment variables (never commit secrets)
 .env
-node_modules/
 .env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build artifacts (generated on deploy)
+build/
+dist/
+.next/
+out/
+
+# Local Supabase emulator config (project-specific)
+.supabase/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Optional npm/yarn cache
+.npm
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

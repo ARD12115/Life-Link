@@ -176,6 +176,19 @@ export default function HospitalDashboard({ user }) {
   const { requests, loading } = useRequests()
   const [showModal, setShowModal]   = useState(false)
   const [expandedId, setExpandedId] = useState(null)
+  
+  // -- Moved hooks to the top to avoid conditional hook call errors --
+  const myRequests = useMemo(() => {
+    return (requests || []).filter(r => r.hospital_id === myHospital?.id)
+  }, [requests, myHospital?.id])
+
+  const stats = useMemo(() => ({
+    open:          myRequests.filter(r => r.status === 'open').length,
+    inProgress:    myRequests.filter(r => r.status === 'in_progress').length,
+    filled:        myRequests.filter(r => r.status === 'filled').length,
+    totalAlerted:  myRequests.reduce((acc, r) => acc + (r.donor_responses?.length || 0), 0)
+  }), [myRequests])
+  // -----------------------------------------------------------------
 
   useEffect(() => {
     async function loadProfile() {
@@ -250,17 +263,6 @@ export default function HospitalDashboard({ user }) {
     )
   }
 
-  // Filter requests to only show ones from THIS hospital (for the hospital dashboard)
-  const myRequests = useMemo(() => {
-    return requests.filter(r => r.hospital_id === myHospital.id)
-  }, [requests, myHospital.id])
-
-  const stats = useMemo(() => ({
-    open:          myRequests.filter(r => r.status === 'open').length,
-    inProgress:    myRequests.filter(r => r.status === 'in_progress').length,
-    filled:        myRequests.filter(r => r.status === 'filled').length,
-    totalAlerted:  myRequests.reduce((acc, r) => acc + (r.donor_responses?.length || 0), 0)
-  }), [myRequests])
 
   const updateStatus = async (id, status, e) => {
     e?.stopPropagation()
