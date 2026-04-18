@@ -7,9 +7,22 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
+  const [lastAttempt, setLastAttempt] = useState(0);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Rate limiting check (60 second cooldown)
+    const now = Date.now();
+    const secondsSinceLastAttempt = Math.floor((now - lastAttempt) / 1000);
+    
+    if (lastAttempt && secondsSinceLastAttempt < 60) {
+      const remaining = 60 - secondsSinceLastAttempt;
+      setError(`Please wait ${remaining} second${remaining !== 1 ? 's' : ''} before trying again`);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -24,6 +37,16 @@ const Auth = () => {
       setError(error.message);
     } else {
       setSent(true);
+      setLastAttempt(now);
+      
+      // Countdown timer
+      let remaining = 60;
+      setCooldownSeconds(remaining);
+      const interval = setInterval(() => {
+        remaining--;
+        setCooldownSeconds(remaining);
+        if (remaining <= 0) clearInterval(interval);
+      }, 1000);
     }
     setLoading(false);
   };
@@ -48,6 +71,11 @@ const Auth = () => {
             <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>
               Check your email to sign in safely.
             </p>
+            {cooldownSeconds > 0 && (
+              <p style={{ marginTop: '12px', fontSize: '12px', color: 'var(--blood-ruby)' }}>
+                ⏱️ Can request another link in {cooldownSeconds} second{cooldownSeconds !== 1 ? 's' : ''}
+              </p>
+            )}
           </div>
         ) : (
           <form onSubmit={handleLogin}>
@@ -73,8 +101,19 @@ const Auth = () => {
               </p>
             )}
 
-            <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-              {loading ? 'Verifying...' : 'Send Magic Link'}
+            <button 
+              type="submit" 
+              disabled={loading || (lastAttempt && cooldownSeconds > 0)} 
+              className="btn-primary" 
+              style={{ 
+                width: '100%', 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: '8px',
+                opacity: (lastAttempt && cooldownSeconds > 0) ? 0.6 : 1
+              }}
+            >
+              {loading ? 'Verifying...' : cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : 'Send Magic Link'}
             </button>
           </form>
         )}
