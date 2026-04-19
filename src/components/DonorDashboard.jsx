@@ -200,6 +200,15 @@ export default function DonorDashboard({ user }) {
           <h1 className="logo-text" style={{ fontSize: '24px' }}>Donor Hub</h1>
         </div>
         <div className="flex-center" style={{ gap: '16px' }}>
+          <button onClick={() => {
+            if (confirm('This will delete your donor profile and let you choose a new role. Continue?')) {
+              supabase.from('profiles').delete().eq('user_id', user.id)
+              supabase.from('donors').delete().eq('user_id', user.id)
+              window.location.reload()
+            }
+          }} className="btn-secondary">
+            Switch Role
+          </button>
           {pendingAlerts > 0 && (
             <div className="status-badge urgency-critical pulse-critical" style={{ textTransform: 'none' }}>
               <Bell size={12} style={{ marginRight: '6px' }} /> {pendingAlerts} alerts

@@ -5,6 +5,7 @@ import RoleSelector      from './components/RoleSelector'
 import VisualEnvironment from './components/VisualEnvironment'
 import Auth              from './components/Auth'
 import DebugDashboard    from './components/DebugDashboard'
+import SupabaseDropdowns from './components/SupabaseDropdowns'
 import { useTheme }      from './context/ThemeContext'
 import { supabase }      from './lib/supabase'
 import { Sun, Moon, Monitor, LogOut } from 'lucide-react'
@@ -71,9 +72,15 @@ export default function App() {
         ) : !profile ? (
           <RoleSelector user={session.user} onProfileCreated={setProfile} />
         ) : profile.role === 'hospital' ? (
-          <HospitalDashboard user={session.user} profile={profile} />
+          <>
+            <HospitalDashboard user={session.user} profile={profile} />
+            <SupabaseDropdowns />
+          </>
         ) : profile.role === 'donor' ? (
-          <DonorDashboard user={session.user} profile={profile} />
+          <>
+            <DonorDashboard user={session.user} profile={profile} />
+            <SupabaseDropdowns />
+          </>
         ) : (
           <div className="loading-text">Role not recognized. Contact support.</div>
         )}

@@ -1,54 +1,40 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Mail, ShieldCheck, Heart, Hospital } from 'lucide-react';
+import { Mail, ShieldCheck, Heart, Hospital, Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
-  const [lastAttempt, setLastAttempt] = useState(0);
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
 
-  const handleLogin = async (e) => {
+  const handleAuth = async (e) => {
     e.preventDefault();
-    
-    // Rate limiting check (60 second cooldown)
-    const now = Date.now();
-    const secondsSinceLastAttempt = Math.floor((now - lastAttempt) / 1000);
-    
-    if (lastAttempt && secondsSinceLastAttempt < 60) {
-      const remaining = 60 - secondsSinceLastAttempt;
-      setError(`Please wait ${remaining} second${remaining !== 1 ? 's' : ''} before trying again`);
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    });
-
-    if (error) {
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setError('Check your email for the confirmation link!');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+      }
+    } catch (error) {
       setError(error.message);
-    } else {
-      setSent(true);
-      setLastAttempt(now);
-      
-      // Countdown timer
-      let remaining = 60;
-      setCooldownSeconds(remaining);
-      const interval = setInterval(() => {
-        remaining--;
-        setCooldownSeconds(remaining);
-        if (remaining <= 0) clearInterval(interval);
-      }, 1000);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -62,61 +48,90 @@ const Auth = () => {
           </p>
         </div>
 
-        {sent ? (
-          <div style={{ textAlign: 'center' }}>
-            <div className="confirm-banner banner-success" style={{ justifyContent: 'center', padding: '20px' }}>
-              <ShieldCheck size={24} />
-              <div style={{ fontSize: '16px' }}>Magic link sent!</div>
+        <form onSubmit={handleAuth}>
+          <div className="form-field">
+            <label className="field-label">Email</label>
+            <div style={{ position: 'relative' }}>
+              <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+              <input
+                type="email"
+                required
+                className="premium-input"
+                style={{ paddingLeft: '40px' }}
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
-            <p style={{ marginTop: '16px', color: 'var(--text-secondary)' }}>
-              Check your email to sign in safely.
-            </p>
-            {cooldownSeconds > 0 && (
-              <p style={{ marginTop: '12px', fontSize: '12px', color: 'var(--blood-ruby)' }}>
-                ⏱️ Can request another link in {cooldownSeconds} second{cooldownSeconds !== 1 ? 's' : ''}
-              </p>
-            )}
           </div>
-        ) : (
-          <form onSubmit={handleLogin}>
-            <div className="form-field">
-              <label className="field-label">Medical / Donor Email</label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                <input
-                  type="email"
-                  required
-                  className="premium-input"
-                  style={{ paddingLeft: '40px' }}
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
+
+          <div className="form-field">
+            <label className="field-label">Password</label>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                className="premium-input"
+                style={{ paddingRight: '40px' }}
+                placeholder="Enter password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
+          </div>
 
-            {error && (
-              <p style={{ color: 'var(--blood-ruby)', fontSize: '12px', marginBottom: '16px' }}>
-                {error}
-              </p>
-            )}
+          {error && (
+            <p style={{ color: 'var(--blood-ruby)', fontSize: '12px', marginBottom: '16px' }}>
+              {error}
+            </p>
+          )}
 
-            <button 
-              type="submit" 
-              disabled={loading || (lastAttempt && cooldownSeconds > 0)} 
-              className="btn-primary" 
-              style={{ 
-                width: '100%', 
-                display: 'flex', 
-                justifyContent: 'center', 
-                gap: '8px',
-                opacity: (lastAttempt && cooldownSeconds > 0) ? 0.6 : 1
-              }}
-            >
-              {loading ? 'Verifying...' : cooldownSeconds > 0 ? `Wait ${cooldownSeconds}s` : 'Send Magic Link'}
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary"
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            {loading ? 'Processing...' : isSignUp ? 'Sign Up' : 'Sign In'}
+          </button>
+        </form>
+
+        <div style={{ marginTop: '16px', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setIsSignUp(!isSignUp)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--vital-blue)',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+          </button>
+        </div>
 
         <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'center', gap: '20px', borderTop: '1px solid var(--glass-border)', paddingTop: '24px' }}>
           <div className="flex-center" style={{ gap: '6px', fontSize: '12px', color: 'var(--text-secondary)' }}>

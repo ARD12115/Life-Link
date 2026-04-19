@@ -282,9 +282,20 @@ export default function HospitalDashboard({ user }) {
           <div className="logo-dot" />
           <h1 className="logo-text" style={{ fontSize: '24px' }}>{myHospital.name}</h1>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-primary">
-          <Plus size={18} style={{ marginRight: '8px' }} />New Request
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => {
+            if (confirm('This will delete your hospital profile and let you choose a new role. Continue?')) {
+              supabase.from('profiles').delete().eq('user_id', user.id)
+              supabase.from('hospitals').delete().eq('user_id', user.id)
+              window.location.reload()
+            }
+          }} className="btn-secondary">
+            Switch Role
+          </button>
+          <button onClick={() => setShowModal(true)} className="btn-primary">
+            <Plus size={18} style={{ marginRight: '8px' }} />New Request
+          </button>
+        </div>
       </header>
 
       {/* ── Stat cards ── */}
