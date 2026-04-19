@@ -3,24 +3,26 @@
 ## Project Details
 
 - **Project Name**: LifeLink
-- **Project ID**: `[your-project-id]` (find in Supabase Dashboard → Settings → General)
-- **Project URL**: `https://[your-project-id].supabase.co`
+- **Project ID**: `hqdiqjswknukqyghtgsa`
+- **Project URL**: `https://hqdiqjswknukqyghtgsa.supabase.co`
 - **Status**: ✅ Fully configured and ready
 
 ---
 
 ## Step 1: Verify Your Supabase Project (Done ✅)
 
-Your Supabase project is already set up with:
+Your Supabase project is set up with:
 
 1. ✅ **Project Created** — Active and running
-2. ✅ **Authentication Configured** — Magic link OTP enabled
+2. ✅ **Authentication Configured** — Email/password authentication (magic link disabled)
 3. ✅ **API Keys Generated** — Public anon key configured
 4. ✅ **Database Ready** — PostgreSQL instance active
+5. ✅ **MCP Server Configured** — For enhanced development
+6. ✅ **Agent Skills Installed** — Supabase development tools
 
 **Check Status:**
 1. Go to https://supabase.com/dashboard
-2. Open your project (find ID in Settings → General)ngs → General)
+2. Open your project (ID: hqdiqjswknukqyghtgsa)
 3. Look for green **"Connected"** status in top bar
 
 ---
@@ -40,13 +42,19 @@ donor_responses - Donor responses to requests
 
 ### Verification Query:
 ```sql
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;
 ```
 
 **Should return:** `donors`, `donor_responses`, `blood_requests`, `hospitals`, `profiles`
+
+### RLS Policies (Updated):
+- Simplified policies to prevent infinite recursion
+- Authenticated users can read donors and hospitals
+- Users can manage their own records
+- Hospitals manage their requests and responses
 
 ---
 
@@ -140,6 +148,17 @@ REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_anon_key
 📡 Requests loaded: X
 ```
 
+### Verify Role-Based Workflow:
+1. Log in with one email address
+2. Select a role on the onboarding screen
+   - Hospital
+   - Donor
+3. If you are already logged in as a hospital, click **Switch Role** in the dashboard header
+4. The app will delete your current `profiles` record and let you re-register as the other role
+5. Refresh the page or wait for the redirect to return to the role selector
+
+> This is the expected workflow when testing multiple roles from the same browser session.
+
 ### Test Query in Supabase:
 1. Go to **SQL Editor**
 2. Run:
@@ -201,6 +220,9 @@ SELECT COUNT(*) as hospital_count FROM hospitals;
 6. Browser redirects to app
 7. Select role (Hospital/Donor)
 8. Dashboard loads ✨
+
+> If you log in again with the same email, the app will restore your existing profile from `profiles`.
+> If you want to switch role, use the **Switch Role** button in the dashboard header.
 
 ---
 

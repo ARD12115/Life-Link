@@ -7,9 +7,9 @@ Project Status: Prototype with production-ready security hardening completed.
 Tech Stack:
 
 Frontend: React 18 + Create React App
-Backend: Supabase (hosted at https://[your-project-id].supabase.co)
+Backend: Supabase (hosted at https://hqdiqjswknukqyghtgsa.supabase.co)
 ORM: Prisma 5.17.0 (installed, optional for future backend)
-Auth: Supabase magic link OTP
+Auth: Supabase email/password authentication (magic link disabled)
 Database: PostgreSQL via Supabase
 Realtime: Supabase Realtime on blood_requests and donor_responses tables
 Database Schema:
@@ -24,17 +24,18 @@ Security Features Implemented:
 Row-level security (RLS) enabled on all tables
 Role-based access control (hospital vs donor)
 Authenticated-only data access
-Magic link email authentication (passwordless)
-RLS policies prevent donors from reading other donors' data
-Hospitals can only manage their own requests
-Donors can only update their own responses
-Debug dashboard hidden in production builds
+Email/password authentication with sign up/sign in
+RLS policies simplified to prevent infinite recursion
+Switch Role functionality for testing both roles
+MCP server configured for enhanced development
+Agent skills installed for Supabase best practices
+Database connection setup with postgres package
 Frontend Components:
 
-Auth.jsx — Magic link login
+Auth.jsx — Email/password login with sign up/sign in toggle
 RoleSelector.jsx — Onboarding screen to choose hospital or donor role
-HospitalDashboard.jsx — Hospital staff: create blood requests, manage responses, view donor alerts
-DonorDashboard.jsx — Donors: receive alerts, respond to requests, update availability
+HospitalDashboard.jsx — Hospital staff: create blood requests, manage responses, view donor alerts, Switch Role button
+DonorDashboard.jsx — Donors: receive alerts, respond to requests, update availability, Switch Role button
 SupabaseDropdowns.jsx — Example dropdowns showing donor/hospital lists from database
 DebugDashboard.jsx — Development-only debugging utilities
 Frontend State Management:

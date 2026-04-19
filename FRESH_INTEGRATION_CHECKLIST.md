@@ -4,19 +4,20 @@
 
 ### Authentication & Authorization
 
-- [x] Magic link OTP login (`supabase.auth.signInWithOtp()`)
-- [x] Email verification flow with redirect handling
+- [x] Email/password authentication (`supabase.auth.signInWithPassword()`)
+- [x] Sign up flow with email confirmation
 - [x] Supabase Auth integration in App.jsx
 - [x] Session state management with `onAuthStateChange()`
 - [x] Role-based routing (Hospital/Donor)
 - [x] profiles table created and RLS-protected
 - [x] User profile creation on first login
+- [x] Switch Role functionality in dashboards
 
 ### Database & Security
 
 - [x] 5 tables created: profiles, donors, hospitals, blood_requests, donor_responses
 - [x] Row-Level Security (RLS) enabled on all tables
-- [x] 9 RLS policies implemented with DO blocks (idempotent)
+- [x] RLS policies simplified to prevent infinite recursion
 - [x] Cascading deletes for referential integrity
 - [x] Realtime configuration on blood_requests and donor_responses
 - [x] Schema applied to hosted Supabase database ✅
@@ -24,10 +25,10 @@
 
 ### React Components
 
-- [x] Auth.jsx — Magic link OTP form with validation
+- [x] Auth.jsx — Email/password form with sign up/sign in toggle
 - [x] RoleSelector.jsx — Hospital/Donor role selection with profile creation
-- [x] HospitalDashboard.jsx — Hospital management interface
-- [x] DonorDashboard.jsx — Donor alert & response interface
+- [x] HospitalDashboard.jsx — Hospital management with Switch Role button
+- [x] DonorDashboard.jsx — Donor alert & response with Switch Role button
 - [x] SupabaseDropdowns.jsx — Data display example component
 - [x] DebugDashboard.jsx — Diagnostic panel for testing
 - [x] App.jsx — Auth router and profile loader
@@ -48,6 +49,9 @@
 - [x] Console logging (👥 📡 🔄 ✅ ❌)
 - [x] Real-time subscription monitoring
 - [x] Webpack deprecation warnings analyzed (safe)
+- [x] MCP server configured
+- [x] Agent skills installed
+- [x] Database connection setup with postgres package
 - [x] Source map warnings analyzed (safe, not a bug)
 
 ### Version Control

@@ -4,18 +4,18 @@
 
 ### ✅ Authentication & Authorization
 ```
-✓ Magic link OTP authentication (passwordless email login)
-✓ Supabase Auth integration with redirect handling
+✓ Email/password authentication (magic link disabled)
+✓ Supabase Auth integration with sign up/sign in
 ✓ Role-based profile system (hospital/donor roles)
 ✓ profiles table with RLS policies
-✓ Row-Level Security (RLS) on all tables with DO blocks
+✓ Row-Level Security (RLS) on all tables (simplified to avoid recursion)
 ```
 
 ### ✅ Database Schema
 ```
 ✓ donors table (id, user_id, name, blood_group, city, phone, available)
 ✓ hospitals table (id, user_id, name, city, contact_person, phone)
-✓ profiles table (user_id, role, display_name, phone) 
+✓ profiles table (user_id, role, display_name, phone)
 ✓ blood_requests table (hospital_id, blood_group, units_needed, urgency, status)
 ✓ donor_responses table (request_id, donor_id, status, eta_minutes)
 ✓ Realtime configuration on blood_requests and donor_responses
@@ -25,23 +25,23 @@
 ### ✅ RLS Policies (Security)
 ```
 ✓ profiles_owner → Users can only access their own profile
-✓ donors_owner_manage → Donors can only manage their own record
-✓ hospitals_read_donors → Hospitals can read available donors
-✓ hospitals_owner_manage → Hospitals can only manage their own record
-✓ authenticated_hospitals_view → Hospitals can view related donor info
+✓ donors_owner_manage → Donors can manage their own record
+✓ hospitals_read_donors → Authenticated users can read donors
+✓ hospitals_owner_manage → Hospitals can manage their own record
+✓ authenticated_hospitals_view → Authenticated users can view hospitals
 ✓ hospitals_manage_requests → Hospitals manage their own requests
 ✓ donors_view_assigned_requests → Donors see assigned requests
 ✓ donors_manage_responses → Donors manage their own responses
 ✓ hospitals_manage_responses → Hospitals manage request responses
-✓ All policies use DO blocks for idempotent application
+✓ Policies simplified to prevent infinite recursion
 ```
 
 ### ✅ React Components
 ```
-✓ Auth.jsx → Magic link OTP login with form validation
+✓ Auth.jsx → Email/password login with sign up/sign in toggle
 ✓ RoleSelector.jsx → Hospital/Donor onboarding with profile creation
-✓ HospitalDashboard.jsx → Hospital view for managing requests
-✓ DonorDashboard.jsx → Donor view for responding to alerts
+✓ HospitalDashboard.jsx → Hospital view with Switch Role button
+✓ DonorDashboard.jsx → Donor view with Switch Role button
 ✓ SupabaseDropdowns.jsx → Example data display component
 ✓ DebugDashboard.jsx → Connection diagnostics and testing
 ```

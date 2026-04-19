@@ -1,12 +1,19 @@
 # 🚀 LifeLink Fresh Supabase Integration - Troubleshooting & Quick Start
 
-## What I've Just Done:
+## What Has Been Done:
 
 ✅ Enhanced hooks with logging and error handling
 ✅ Added debug utility (supabaseDebug.js)
 ✅ Created Setup Guide (SUPABASE_SETUP_GUIDE.md)
 ✅ Added Debug Dashboard component (visible in bottom-right corner)
 ✅ Fixed DELETE bug in useDonors.js
+✅ Disabled magic link, switched to email/password authentication
+✅ Fixed RLS infinite recursion by simplifying policies
+✅ Added Switch Role button in dashboards
+✅ Configured MCP server
+✅ Installed agent skills
+✅ Set up database connection with postgres package
+✅ Updated environment variables with actual project details
 
 ---
 
@@ -38,7 +45,7 @@ npm start
 
 ### Step 1: Check Supabase Project
 1. Go to https://supabase.com/dashboard
-2. Open your project (find ID in Settings → General)
+2. Open your project (ID: hqdiqjswknukqyghtgsa)
 3. Click **SQL Editor**
 4. Run this query:
 ```sql
@@ -96,6 +103,59 @@ SELECT * FROM hospitals;
 3. Refresh page
 4. Click **RUN DIAGNOSTIC** button in bottom-right corner
 5. Should now show Donors, Hospitals, and Requests counts
+
+---
+
+## 🔁 Role Switching and Same-Browser Testing
+If you log in with the same email and get redirected to the Hospital side, this is likely because your current user profile is still stored in Supabase.
+
+### How role switching works
+- The app stores the chosen role in the `profiles` table for your authenticated user.
+- If you log in again with the same email, the app loads that existing profile.
+- To switch from Hospital to Donor (or vice versa):
+  1. Click the **Switch Role** button in the dashboard header
+  2. Confirm the prompt
+  3. The app deletes your current `profiles`, `donors`, and `hospitals` records for that user
+  4. The page reloads and returns to the role selector
+
+### Problem: Switch Role Button Not Visible
+**Symptoms:** No "Switch Role" button in the dashboard header.
+
+**Solution:**
+- Ensure you're logged in and on a dashboard page
+- The button is located in the header next to "New Request"
+- If still not visible, check browser console for JavaScript errors
+- May indicate database connection issues or RLS policy problems
+
+---
+
+## 🔐 Authentication Changes
+
+### Important: Magic Link Disabled
+The app has been updated to use email/password authentication instead of magic links.
+
+**To sign in:**
+1. Enter your email and password
+2. Click "Sign In"
+3. If you don't have an account, click "Sign Up" first
+
+**For new accounts:**
+1. Click "Sign Up"
+2. Enter email and password (min 6 characters)
+3. Check your email for confirmation link
+4. Click the link to activate your account
+5. Then sign in with email/password
+
+### Common issue: stuck on Hospital after logout
+- This is not a browser cache bug.
+- It means your Supabase user still has a saved role profile.
+- Use the **Switch Role** button to clear the old profile and choose the other role.
+
+### If the button does not work
+1. Open DevTools Console
+2. Check for errors from Supabase requests
+3. Confirm the backend database still has your email in `profiles`
+4. If needed, delete the `profiles` row manually in Supabase and reload the app
 
 ---
 

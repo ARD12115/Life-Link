@@ -3,6 +3,15 @@
 This file captures the process and expectations for working on Life Link code, diagnostics, and Supabase integration.
 It is intended to be reviewed before and after every change by the developer assistant.
 
+## Recent Updates
+
+- **2024-04-19**: Fixed infinite RLS recursion by simplifying `hospitals` and `donors` select policies in `supabase_schema.sql`
+- **2024-04-19**: Disabled magic link authentication, switched to email/password in `Auth.jsx`
+- **2024-04-19**: Added Switch Role buttons to dashboards for profile deletion and role switching
+- **2024-04-19**: Updated environment variables with actual Supabase project details
+- **2024-04-19**: Configured MCP server and installed agent skills
+- **2024-04-19**: Added postgres package and db.js for direct database connections
+
 ## Purpose
 
 - Track code changes and integration fixes immediately.

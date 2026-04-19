@@ -12,17 +12,18 @@
 
 ### In App:
 ```
-✅ Login page appears (email field)
-✅ Magic link works (email received within 1 min)
+✅ Login page appears (email and password fields)
+✅ Sign up/sign in works (email/password authentication)
 ✅ Role selector shows (Hospital/Donor choices)
 ✅ Dashboard loads after role selection
+✅ Switch Role button visible in dashboard header
 ✅ Real-time updates work (open 2 tabs side-by-side)
 ```
 
 ### In Supabase Dashboard:
 ```
 ✅ 5 tables exist: profiles, donors, hospitals, blood_requests, donor_responses
-✅ RLS policies enabled on all tables (9 policies total)
+✅ RLS policies enabled on all tables (simplified policies)
 ✅ Realtime: ON on blood_requests and donor_responses
 ✅ Row count matches your data
 ```
@@ -32,12 +33,13 @@
 ## 🔴 You Have Issues If You See...
 
 | `Table 'profiles' doesn't exist` | Run `supabase_schema.sql` in Supabase SQL Editor (schema was successfully applied, reload app) |
-| `Magic link not received` | Check spam folder, wait 2 minutes, verify email is correct |
+| `Email not received` | Check spam folder, wait 2 minutes, verify email is correct (for signup confirmation) |
 | `Realtime not updating` | Enable Realtime on tables in Supabase Dashboard (Database → Tables → Toggle ON) |
 | `"Cannot find module" errors` | `rm -r node_modules && npm install` then `npm start` |
-| `CORS error / Failed to fetch` | Verify `.env` has correct SUPABASE_URL and PUBLISHABLE_KEY |
+| `CORS error / Failed to fetch` | Verify `.env` has correct REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_PUBLISHABLE_KEY |
 | `Login button doesn't work` | Check browser console for auth errors; verify .env variables |
 | `Donors: 0 / No data shows` | Insert test data via Supabase Dashboard SQL Editor |
+| `Switch Role button missing` | Check if logged in; button is in dashboard header next to "New Request" |
 
 ---
 

@@ -7,13 +7,16 @@ Life Link connects hospitals that need blood **right now** with available, match
 ## ✅ Status: Production-Ready
 
 **Latest Updates:**
-- ✅ Supabase integration with magic link authentication
+- ✅ Supabase integration with email/password authentication (magic link disabled)
 - ✅ Role-based access control (Hospital/Donor)
-- ✅ Row-Level Security (RLS) with idempotent policies
+- ✅ Row-Level Security (RLS) with simplified policies (recursion fixed)
 - ✅ Profiles table for user role management
 - ✅ Real-time data syncing
 - ✅ GitHub repository linked and pushed
 - ✅ Environment variables configured
+- ✅ MCP server configured
+- ✅ Agent skills installed
+- ✅ Database connection setup
 - ✅ Code reviewed and tested
 
 ---
@@ -22,25 +25,64 @@ Life Link connects hospitals that need blood **right now** with available, match
 
 ### 1. Environment Variables (Done ✅)
 
-Your `.env` file already contains:
+Your `.env` file contains:
 ```
-REACT_APP_SUPABASE_URL=https://your-project-id.supabase.co
-REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+REACT_APP_SUPABASE_URL=https://hqdiqjswknukqyghtgsa.supabase.co
+REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_Nsi9ZmjBsb5wJfLipIvmCQ_iPAIH3CT
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.hqdiqjswknukqyghtgsa.supabase.co:5432/postgres
 ```
 
-**⚠️ Important:** Replace `your-project-id` with your actual Supabase project ID from the dashboard. Never commit real credentials to GitHub.
-
-**⚠️ Important:** Replace `your-project-id` with your actual Supabase project ID from the dashboard. Never commit real credentials to GitHub.
+**⚠️ Important:** Replace `[YOUR-PASSWORD]` with your actual database password from Supabase dashboard (Settings > Database > Password). Never commit real credentials to GitHub.
 
 **Note:** These are public keys (safe to commit). Sensitive operations use Row-Level Security policies.
 
+### 1.5 Role Flow and Switching
+The app uses a single Supabase authenticated user record and a separate `profiles` row to store role selection.
+
+- First login: choose Hospital or Donor
+- Same email login: app restores the saved role
+- To switch roles: click **Switch Role** in the dashboard header, confirm, then re-register
+
+This is expected behavior for testing both roles in the same browser session.
+
 ### 2. Database Schema (Done ✅)
 
-The `supabase_schema.sql` file is already applied to your hosted Supabase database with:
+The `supabase_schema.sql` file is applied to your hosted Supabase database with:
 - ✅ 5 tables: `profiles`, `donors`, `hospitals`, `blood_requests`, `donor_responses`
-- ✅ Row-Level Security policies with `DO` blocks (idempotent)
+- ✅ Row-Level Security policies (simplified to avoid recursion)
 - ✅ Realtime configuration on core tables
 - ✅ Cascading deletes for data integrity
+
+### 3. MCP Configuration (Done ✅)
+
+MCP server is configured in `.vscode/mcp.json`:
+```json
+{
+  "servers": {
+    "supabase": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=hqdiqjswknukqyghtgsa"
+    }
+  },
+  "inputs": []
+}
+```
+
+### 4. Agent Skills (Done ✅)
+
+Supabase agent skills are installed for enhanced development experience.
+
+### 5. Dependencies (Done ✅)
+
+Required packages installed:
+- `@supabase/supabase-js`: Supabase client library
+- `postgres`: PostgreSQL client for direct database connections
+- `lucide-react`: Icons
+- `react-scripts`: Build tools
+
+### 6. Database Connection (Done ✅)
+
+`db.js` file created for direct PostgreSQL connections using the postgres package.
 
 ### 3. Install dependencies and start
 
@@ -175,6 +217,7 @@ No page refresh required — Supabase Realtime pushes all changes.
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — Common issues and fixes
 - [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md) — Detailed Supabase setup
 - [QUICK_REFERENCE.md](QUICK_REFERENCE.md) — Quick lookup guide
+- [DEV_SKILL_GUIDELINES.md](DEV_SKILL_GUIDELINES.md) — Developer workflow and documentation process
 - [Prompt.txt](Prompt.txt) — Full conversation context for AI assistance
 
 ---
