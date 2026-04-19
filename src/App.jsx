@@ -59,10 +59,14 @@ export default function App() {
 
   const handleLogout = () => supabase.auth.signOut()
 
+  const debugEnabled = typeof window !== 'undefined' && (
+    process.env.NODE_ENV === 'development' || new URLSearchParams(window.location.search).get('debug') === 'true'
+  )
+
   return (
     <div className="app-container">
       <VisualEnvironment />
-      {process.env.NODE_ENV === 'development' && <DebugDashboard />}
+      <DebugDashboard visible={debugEnabled} />
 
       <main style={{ paddingBottom: '100px', minHeight: '100vh' }}>
         {!session ? (

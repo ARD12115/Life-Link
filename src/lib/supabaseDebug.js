@@ -1,59 +1,94 @@
-// Debug utility to verify Supabase connection and data
 import { supabase } from './supabase'
 
-export async function testConnection() {
-  try {
-    console.log('🔍 Testing Supabase connection...')
-    console.log('URL:', process.env.REACT_APP_SUPABASE_URL)
-    console.log('Key loaded:', !!process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY)
+const envUrl = process.env.REACT_APP_SUPABASE_URL?.trim() || ''
+const envKey = process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY?.trim() || ''
 
-    // Test basic query
+export function getSupabaseEnvInfo() {
+  return {
+    url: envUrl,
+    keyLoaded: !!envKey,
+    missing: !envUrl || !envKey,
+    missingFields: [
+      !envUrl ? 'REACT_APP_SUPABASE_URL' : null,
+      !envKey ? 'REACT_APP_SUPABASE_PUBLISHABLE_KEY' : null,
+    ].filter(Boolean),
+  }
+}
+
+export async function testAuth() {
+  try {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+
+    return {
+      success: !sessionError && !userError,
+      session: sessionData?.session ?? null,
+      user: userData?.user ?? null,
+      error: sessionError?.message || userError?.message || null,
+    }
+  } catch (err) {
+    return { success: false, error: err?.message || String(err) }
+  }
+}
+
+export async function testConnection() {
+  if (!envUrl || !envKey) {
+    return {
+      success: false,
+      error: 'Supabase client configuration is missing. Check REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_PUBLISHABLE_KEY in your .env file.',
+      env: getSupabaseEnvInfo(),
+    }
+  }
+
+  try {
     const { data, error } = await supabase
       .from('donors')
-      .select('*')
+      .select('id')
       .limit(1)
 
     if (error) {
-      console.error('❌ Connection failed:', error)
-      return { success: false, error }
+      return {
+        success: false,
+        error: error.message || 'Query failed while testing connection.',
+        details: { table: 'donors', error },
+      }
     }
 
-    console.log('✅ Connection successful!')
-    return { success: true }
+    return { success: true, rowCount: data?.length ?? 0 }
   } catch (err) {
-    console.error('❌ Unexpected error:', err)
-    return { success: false, error: err.message }
+    return { success: false, error: err?.message || String(err) }
   }
 }
 
 export async function fetchAllTables() {
-  console.log('📊 Fetching all table data...')
-
-  try {
-    const [donorsRes, hospitalsRes, requestsRes] = await Promise.all([
-      supabase.from('donors').select('*'),
-      supabase.from('hospitals').select('*'),
-      supabase.from('blood_requests').select('*'),
-    ])
-
-    console.log('👥 Donors:', donorsRes.data?.length || 0, donorsRes.data)
-    console.log('🏥 Hospitals:', hospitalsRes.data?.length || 0, hospitalsRes.data)
-    console.log('🩸 Requests:', requestsRes.data?.length || 0, requestsRes.data)
-
-    return {
-      donors: donorsRes.data || [],
-      hospitals: hospitalsRes.data || [],
-      requests: requestsRes.data || [],
-    }
-  } catch (err) {
-    console.error('❌ Error fetching tables:', err)
-    return { donors: [], hospitals: [], requests: [] }
+  const tables = {
+    donors: [],
+    hospitals: [],
+    requests: [],
+    errors: [],
   }
+
+  const queries = [
+    { name: 'donors', query: supabase.from('donors').select('*') },
+    { name: 'hospitals', query: supabase.from('hospitals').select('*') },
+    { name: 'requests', query: supabase.from('blood_requests').select('*') },
+  ]
+
+  await Promise.all(
+    queries.map(async ({ name, query }) => {
+      const { data, error } = await query
+      if (error) {
+        tables.errors.push({ table: name, message: error.message || String(error) })
+      } else {
+        tables[name] = data || []
+      }
+    })
+  )
+
+  return tables
 }
 
-export async function subscribeToRealtime() {
-  console.log('📡 Setting up realtime subscriptions...')
-
+export function subscribeToRealtime() {
   const channels = []
 
   const donorChannel = supabase
