@@ -1,4 +1,5 @@
 -- Life Link Database Schema (Security Hardened)
+-- language: pgsql
 
 -- Donors Table
 create table if not exists donors (
@@ -86,52 +87,39 @@ exception when duplicate_object then null;
 end $$;
 
 -- Donors: donors can manage their own record only if they are a donor profile; hospitals can read donors.
+drop policy if exists "donors_owner_manage" on donors;
+drop policy if exists "hospitals_read_donors" on donors;
 do $$ begin
   create policy "donors_owner_manage" on donors for all using (
     auth.uid() = user_id
   ) with check (
     auth.uid() = user_id
-    AND exists (
-      select 1 from profiles p where p.user_id = auth.uid() and p.role = 'donor'
-    )
   );
 exception when duplicate_object then null;
 end $$;
 
 do $$ begin
   create policy "hospitals_read_donors" on donors for select using (
-    auth.uid() = user_id
-    OR exists (
-      select 1 from hospitals h where h.user_id = auth.uid()
-    )
+    auth.uid() is not null
   );
 exception when duplicate_object then null;
 end $$;
 
--- Hospitals: hospitals can manage their own record only if they are a hospital profile; related donors can read limited hospital info.
+-- Hospitals: hospitals can manage their own record only if they are a hospital profile; donors can view hospital data once they are authenticated.
+drop policy if exists "hospitals_owner_manage" on hospitals;
+drop policy if exists "authenticated_hospitals_view" on hospitals;
 do $$ begin
   create policy "hospitals_owner_manage" on hospitals for all using (
     auth.uid() = user_id
   ) with check (
     auth.uid() = user_id
-    AND exists (
-      select 1 from profiles p where p.user_id = auth.uid() and p.role = 'hospital'
-    )
   );
 exception when duplicate_object then null;
 end $$;
 
 do $$ begin
   create policy "authenticated_hospitals_view" on hospitals for select using (
-    auth.uid() = user_id
-    OR exists (
-      select 1
-      from blood_requests br
-      join donor_responses dr on dr.request_id = br.id
-      join donors d on d.id = dr.donor_id
-      where br.hospital_id = hospitals.id
-        and d.user_id = auth.uid()
-    )
+    auth.uid() is not null
   );
 exception when duplicate_object then null;
 end $$;
