@@ -1,128 +1,77 @@
 import React, { useState, useEffect } from 'react'
 import HospitalDashboard from './components/HospitalDashboard'
 import DonorDashboard    from './components/DonorDashboard'
-import RoleSelector      from './components/RoleSelector'
-import VisualEnvironment from './components/VisualEnvironment'
 import Auth              from './components/Auth'
-import DebugDashboard    from './components/DebugDashboard'
-import SupabaseDropdowns from './components/SupabaseDropdowns'
 import { useTheme }      from './context/ThemeContext'
 import { supabase }      from './lib/supabase'
-import { Sun, Moon, Monitor, LogOut } from 'lucide-react'
+import { Sun, Moon, Monitor, Hospital, Heart, LogOut, RotateCcw } from 'lucide-react'
 
-const THEMES = [
-  { key: 'light',  icon: <Sun size={14} />,     label: 'Light' },
-  { key: 'dark',   icon: <Moon size={14} />,    label: 'Dark' },
-  { key: 'system', icon: <Monitor size={14} />, label: 'System' },
+const VIEWS = [
+  { key: 'hospital', label: 'Hospital', icon: <Hospital size={18} /> },
+  { key: 'donor',    label: 'Donor',    icon: <Heart size={18} /> },
 ]
 
 export default function App() {
+  const [view, setView] = useState('hospital')
   const [session, setSession] = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [profileLoading, setProfileLoading] = useState(true)
   const { theme, setTheme } = useTheme()
 
   useEffect(() => {
-    const loadProfile = async (user) => {
-      if (!user) {
-        setProfile(null)
-        setProfileLoading(false)
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading profile:', error)
-      }
-
-      setProfile(data || null)
-      setProfileLoading(false)
-    }
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
-      loadProfile(session?.user)
     })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      loadProfile(session?.user)
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
   const handleLogout = () => supabase.auth.signOut()
-
-  const debugEnabled = typeof window !== 'undefined' && (
-    process.env.NODE_ENV === 'development' || new URLSearchParams(window.location.search).get('debug') === 'true'
-  )
+  const handleReset = async () => {
+    if (window.confirm('Reset application? This will log you out and clear all local settings.')) {
+      localStorage.clear()
+      await supabase.auth.signOut()
+      window.location.reload()
+    }
+  }
 
   return (
     <div className="app-container">
-      <VisualEnvironment />
-      <DebugDashboard visible={debugEnabled} />
-
-      <main style={{ paddingBottom: '100px', minHeight: '100vh' }}>
+      <main style={{ minHeight: '100vh' }}>
         {!session ? (
           <Auth />
-        ) : profileLoading ? (
-          <div className="loading-text">Loading your secure profile...</div>
-        ) : !profile ? (
-          <RoleSelector user={session.user} onProfileCreated={setProfile} />
-        ) : profile.role === 'hospital' ? (
-          <>
-            <HospitalDashboard user={session.user} profile={profile} />
-            <SupabaseDropdowns />
-          </>
-        ) : profile.role === 'donor' ? (
-          <>
-            <DonorDashboard user={session.user} profile={profile} />
-            <SupabaseDropdowns />
-          </>
         ) : (
-          <div className="loading-text">Role not recognized. Contact support.</div>
+          view === 'hospital' ? <HospitalDashboard user={session.user} /> : <DonorDashboard user={session.user} />
         )}
       </main>
 
-      {session && (
-        <div className="floating-nav">
-          <div style={{ display: 'flex', gap: '4px', borderRight: '1px solid var(--glass-border)', paddingRight: '8px', marginRight: '8px' }}>
-            {THEMES.map(t => (
-              <button
-                key={t.key}
-                onClick={() => setTheme(t.key)}
-                title={`${t.label} mode`}
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: theme === t.key ? 'var(--bg-secondary)' : 'transparent',
-                  color: theme === t.key ? 'var(--blood-ruby)' : 'var(--text-secondary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'var(--transition-smooth)',
-                  boxShadow: theme === t.key ? '0 4px 12px rgba(0,0,0,0.1)' : 'none'
-                }}
-              >
-                {t.icon}
+      <div className="floating-nav fade-in">
+        {session && (
+          <div style={{ display: 'flex', borderRight: '1px solid var(--border-soft)', paddingRight: '8px', marginRight: '8px' }}>
+            {VIEWS.map(v => (
+              <button key={v.key} onClick={() => setView(v.key)} className={`nav-item ${view === v.key ? 'active' : ''}`}>
+                {v.icon} {v.label}
               </button>
             ))}
           </div>
+        )}
 
-          <button onClick={handleLogout} className="nav-item" style={{ color: 'var(--text-secondary)' }}>
-            <LogOut size={16} />
-          </button>
+        <div className="theme-dock">
+          <button onClick={() => setTheme('light')} className={`theme-btn ${theme === 'light' ? 'active' : ''}`} title="Light Mode"><Sun size={16} /></button>
+          <button onClick={() => setTheme('dark')} className={`theme-btn ${theme === 'dark' ? 'active' : ''}`} title="Dark Mode"><Moon size={16} /></button>
+          <button onClick={() => setTheme('system')} className={`theme-btn ${theme === 'system' ? 'active' : ''}`} title="System Mode"><Monitor size={16} /></button>
         </div>
-      )}
+
+        <button onClick={handleReset} className="nav-item" title="Reset Application" style={{ padding: '12px' }}>
+          <RotateCcw size={18} />
+        </button>
+
+        {session && (
+          <button onClick={handleLogout} className="nav-item" title="Sign Out" style={{ padding: '12px' }}>
+            <LogOut size={18} />
+          </button>
+        )}
+      </div>
     </div>
   )
 }

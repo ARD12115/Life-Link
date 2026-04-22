@@ -84,3 +84,6 @@ That's your context! When you start a new chat, paste this and say:
 "I'm continuing work on the LifeLink project. Here's the full context from the previous session. [paste the summary above]. What I want to do next is..."
 
 This will save the AI from needing to ask questions and let them jump straight into helping.
+
+Junie cli API
+perm-cGhvZW5peGV5ZXY1QGdtYWlsLmNvbQ==.MGE4MDNlZmItZjliYi00Y2ExLWJlMjgtYTVjM2RmZTQzNjU5.yE93WssQKw0XtjoAw7XSN8HpIfziBQ
