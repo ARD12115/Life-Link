@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRequests } from '../hooks/useRequests'
-import { Heart, MapPin, CheckCircle, Bell, Phone, Activity, ShieldCheck, Droplets } from 'lucide-react'
+import { useHospitals } from '../hooks/useDonors'
+import { Heart, MapPin, CheckCircle, Bell, Phone, Activity, ShieldCheck, Droplets, Hospital } from 'lucide-react'
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
 
@@ -76,6 +77,8 @@ export default function DonorDashboard({ user }) {
   const [donor, setDonor] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const { requests, loading, refetch } = useRequests()
+  const { hospitals } = useHospitals()
+  const [activeTab, setActiveTab] = useState('alerts')
 
   useEffect(() => {
     async function loadDonorProfile() {
@@ -179,22 +182,72 @@ export default function DonorDashboard({ user }) {
         </div>
       </div>
 
-      <section>
-        <h2 style={{ fontSize: '24px', marginBottom: '32px' }}>Emergency Alerts</h2>
-        <div className="stream-container">
-          {loading ? (
-             <div style={{ color: 'var(--text-muted)' }}>Scanning network frequency...</div>
-          ) : myResponses.length === 0 ? (
-             <div className="ui-panel flex-center" style={{ padding: '80px', borderStyle: 'dashed', background: 'transparent' }}>
-               <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No matching alerts in your area</p>
-             </div>
-          ) : (
-            myResponses.map(({ response, request }) => (
-              <AlertCard key={response.id} response={response} request={request} onRespond={refetch} />
-            ))
-          )}
-        </div>
-      </section>
+      <div className="view-tabs">
+        <button className={`tab-btn ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>
+          <Bell size={18} /> Emergency Alerts
+        </button>
+        <button className={`tab-btn ${activeTab === 'directory' ? 'active' : ''}`} onClick={() => setActiveTab('directory')}>
+          <Hospital size={18} /> Network Hospitals
+        </button>
+      </div>
+
+      {activeTab === 'alerts' && (
+        <section className="fade-in">
+          <h2 style={{ fontSize: '24px', marginBottom: '32px' }}>Emergency Alerts</h2>
+          <div className="stream-container">
+            {loading ? (
+               <div style={{ color: 'var(--text-muted)' }}>Scanning network frequency...</div>
+            ) : myResponses.length === 0 ? (
+               <div className="ui-panel flex-center" style={{ padding: '80px', borderStyle: 'dashed', background: 'transparent' }}>
+                 <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No matching alerts in your area</p>
+               </div>
+            ) : (
+              myResponses.map(({ response, request }) => (
+                <AlertCard key={response.id} response={response} request={request} onRespond={refetch} />
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'directory' && (
+        <section className="fade-in">
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '24px' }}>Registered Hospitals</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Medical facilities connected to the LifeLink network.</p>
+          </div>
+          
+          <div className="directory-grid">
+            {hospitals.map(hospital => (
+              <div key={hospital.id} className="ui-panel directory-card">
+                <div className="directory-card-header">
+                  <div className="blood-tag flex-center" style={{ justifyContent: 'center', background: 'var(--bg-app)', color: 'var(--accent-blue)', boxShadow: 'none', border: '1px solid var(--border-soft)' }}>
+                    <Hospital size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{hospital.name}</h3>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Joined {new Date(hospital.created_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+                <div className="directory-card-body">
+                  <div className="flex-center" style={{ gap: '8px' }}><MapPin size={16} /> {hospital.city}</div>
+                  <div className="flex-center" style={{ gap: '8px' }}><Phone size={16} /> {hospital.phone || 'N/A'}</div>
+                </div>
+                <div className="directory-card-footer">
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    Contact: <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{hospital.contact_person || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {hospitals.length === 0 && (
+              <div className="ui-panel flex-center" style={{ padding: '80px', gridColumn: '1 / -1', justifyContent: 'center', borderStyle: 'dashed', background: 'transparent' }}>
+                <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No hospitals registered yet.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

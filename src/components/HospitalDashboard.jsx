@@ -7,7 +7,7 @@ import { useDonors } from '../hooks/useDonors'
 import {
   AlertCircle, Clock, CheckCircle, Plus, X,
   Activity, ChevronDown, ChevronUp, MapPin, 
-  Droplets, Users, HeartPulse
+  Droplets, Users, HeartPulse, Phone
 } from 'lucide-react'
 
 const BLOOD_GROUPS  = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
@@ -135,8 +135,10 @@ export default function HospitalDashboard({ user }) {
   const [myHospital, setMyHospital] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const { requests, loading } = useRequests()
+  const { donors } = useDonors()
   const [showModal, setShowModal]   = useState(false)
   const [expandedId, setExpandedId] = useState(null)
+  const [activeTab, setActiveTab]   = useState('emergencies')
 
   useEffect(() => {
     async function loadProfile() {
@@ -217,57 +219,109 @@ export default function HospitalDashboard({ user }) {
         </div>
       </div>
 
-      <section>
-        <div className="flex-between" style={{ marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '24px' }}>Active Emergency Stream</h2>
-          {loading && <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Syncing...</div>}
-        </div>
-        
-        <div className="stream-container">
-          {!loading && myRequests.length === 0 && (
-            <div className="ui-panel flex-center" style={{ padding: '80px', justifyContent: 'center', flexDirection: 'column', gap: '20px', borderStyle: 'dashed', background: 'transparent' }}>
-              <Droplets size={48} strokeWidth={1} style={{ color: 'var(--border-soft)' }} />
-              <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No active emergency requests</p>
-            </div>
-          )}
+      <div className="view-tabs">
+        <button className={`tab-btn ${activeTab === 'emergencies' ? 'active' : ''}`} onClick={() => setActiveTab('emergencies')}>
+          <Activity size={18} /> Active Emergencies
+        </button>
+        <button className={`tab-btn ${activeTab === 'directory' ? 'active' : ''}`} onClick={() => setActiveTab('directory')}>
+          <Users size={18} /> Donor Directory
+        </button>
+      </div>
 
-          {myRequests.map(req => (
-            <div key={req.id} className={`ui-panel data-row ${expandedId === req.id ? 'active' : ''}`} onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}>
-              <div className="flex-center" style={{ gap: '24px' }}>
-                <div className="blood-tag">{req.blood_group}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '18px' }}>{req.component}</div>
-                  <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    {req.units_needed} Units Required • {timeAgo(req.created_at)}
+      {activeTab === 'emergencies' && (
+        <section className="fade-in">
+          <div className="flex-between" style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '24px' }}>Active Emergency Stream</h2>
+            {loading && <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Syncing...</div>}
+          </div>
+          
+          <div className="stream-container">
+            {!loading && myRequests.length === 0 && (
+              <div className="ui-panel flex-center" style={{ padding: '80px', justifyContent: 'center', flexDirection: 'column', gap: '20px', borderStyle: 'dashed', background: 'transparent' }}>
+                <Droplets size={48} strokeWidth={1} style={{ color: 'var(--border-soft)' }} />
+                <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No active emergency requests</p>
+              </div>
+            )}
+
+            {myRequests.map(req => (
+              <div key={req.id} className={`ui-panel data-row ${expandedId === req.id ? 'active' : ''}`} onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}>
+                <div className="flex-center" style={{ gap: '24px' }}>
+                  <div className="blood-tag">{req.blood_group}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '18px' }}>{req.component}</div>
+                    <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      {req.units_needed} Units Required • {timeAgo(req.created_at)}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex-center" style={{ gap: '16px' }}>
+                  <span className={`badge ${URGENCY_BADGES[req.urgency]}`}>{req.urgency}</span>
+                  <div className="badge badge-low" style={{ background: 'var(--bg-app)' }}>{STATUS_LABELS[req.status]}</div>
+                  {expandedId === req.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </div>
+
+                {expandedId === req.id && (
+                  <div style={{ width: '100%', position: 'absolute', top: '100%', left: 0, padding: '32px', background: 'var(--bg-card)', borderTop: '1px solid var(--border-soft)', zIndex: 10 }}>
+                     {req.notes && <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginBottom: '32px', fontStyle: 'italic' }}>"{req.notes}"</p>}
+                     <h4 style={{ marginBottom: '16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Donor Response Network</h4>
+                     {req.donor_responses?.length > 0 ? (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                          {req.donor_responses.map(dr => (
+                            <div key={dr.id} className="ui-panel" style={{ padding: '16px', background: 'var(--bg-app)', borderRadius: '16px' }}>
+                              <div style={{ fontWeight: 700, fontSize: '14px' }}>{dr.donors?.name}</div>
+                              <div style={{ fontSize: '12px', color: 'var(--accent-green)', marginTop: '4px', fontWeight: 600 }}>{dr.status.toUpperCase()}</div>
+                            </div>
+                          ))}
+                        </div>
+                     ) : <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Waiting for donor responses...</p>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'directory' && (
+        <section className="fade-in">
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '24px' }}>Network Donors</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Total registered donors in the LifeLink network.</p>
+          </div>
+          
+          <div className="directory-grid">
+            {donors.map(donor => (
+              <div key={donor.id} className="ui-panel directory-card">
+                <div className="directory-card-header">
+                  <div className="blood-tag flex-center" style={{ justifyContent: 'center' }}>{donor.blood_group}</div>
+                  <div>
+                    <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{donor.name}</h3>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Joined {new Date(donor.created_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+                <div className="directory-card-body">
+                  <div className="flex-center" style={{ gap: '8px' }}><MapPin size={16} /> {donor.city}</div>
+                  <div className="flex-center" style={{ gap: '8px' }}><Phone size={16} /> {donor.phone || 'N/A'}</div>
+                </div>
+                <div className="directory-card-footer">
+                  <div className="flex-center" style={{ gap: '6px', fontSize: '13px', fontWeight: 700, color: donor.available ? 'var(--accent-green)' : 'var(--text-muted)' }}>
+                    {donor.available ? <CheckCircle size={14} /> : <X size={14} />}
+                    {donor.available ? 'AVAILABLE' : 'OFFLINE'}
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    {donor.total_donations} Donations
                   </div>
                 </div>
               </div>
-              <div className="flex-center" style={{ gap: '16px' }}>
-                <span className={`badge ${URGENCY_BADGES[req.urgency]}`}>{req.urgency}</span>
-                <div className="badge badge-low" style={{ background: 'var(--bg-app)' }}>{STATUS_LABELS[req.status]}</div>
-                {expandedId === req.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            ))}
+            {donors.length === 0 && (
+              <div className="ui-panel flex-center" style={{ padding: '80px', gridColumn: '1 / -1', justifyContent: 'center', borderStyle: 'dashed', background: 'transparent' }}>
+                <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No donors found in the network</p>
               </div>
-
-              {expandedId === req.id && (
-                <div style={{ width: '100%', position: 'absolute', top: '100%', left: 0, padding: '32px', background: 'var(--bg-card)', borderTop: '1px solid var(--border-soft)', zIndex: 10 }}>
-                   {req.notes && <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginBottom: '32px', fontStyle: 'italic' }}>"{req.notes}"</p>}
-                   <h4 style={{ marginBottom: '16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Donor Response Network</h4>
-                   {req.donor_responses?.length > 0 ? (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-                        {req.donor_responses.map(dr => (
-                          <div key={dr.id} className="ui-panel" style={{ padding: '16px', background: 'var(--bg-app)', borderRadius: '16px' }}>
-                            <div style={{ fontWeight: 700, fontSize: '14px' }}>{dr.donors?.name}</div>
-                            <div style={{ fontSize: '12px', color: 'var(--accent-green)', marginTop: '4px', fontWeight: 600 }}>{dr.status.toUpperCase()}</div>
-                          </div>
-                        ))}
-                      </div>
-                   ) : <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Waiting for donor responses...</p>}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      )}
 
       {showModal && <NewRequestModal myHospital={myHospital} onClose={() => setShowModal(false)} />}
     </div>
