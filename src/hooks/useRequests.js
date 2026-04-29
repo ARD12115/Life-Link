@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function useRequests() {
-  const [requests, setRequests] = useState([])
-  const [loading, setLoading] = useState(true)
-  const isMounted = useRef(true)
-  const lastFetchTime = useRef(0)
+  const [requests, setRequests]   = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState(null)
+  const isMounted                 = useRef(true)
+  const lastFetchTime             = useRef(0)
 
   const fetchRequests = useCallback(async () => {
-    // Throttling to prevent network storms (max once per 1s)
+    // Throttle: max once per 1s to prevent network storms
     const now = Date.now()
     if (now - lastFetchTime.current < 1000) return
     lastFetchTime.current = now
@@ -28,16 +29,22 @@ export function useRequests() {
         `)
         .order('created_at', { ascending: false })
 
-      if (isMounted.current) {
-        if (error) {
-          console.error('Requests fetch error:', error)
-        }
+      if (!isMounted.current) return
+
+      if (error) {
+        // RLS will silently return [] for unauthorised rows — a real error means something else
+        console.error('Requests fetch error:', error)
+        setError(error.message)
+        setRequests([])
+      } else {
+        setError(null)
         setRequests(data || [])
-        setLoading(false)
       }
+      setLoading(false)
     } catch (err) {
       console.error('Requests fetch exception:', err)
       if (isMounted.current) {
+        setError(err.message)
         setRequests([])
         setLoading(false)
       }
@@ -66,5 +73,5 @@ export function useRequests() {
     }
   }, [fetchRequests])
 
-  return { requests, loading, refetch: fetchRequests }
+  return { requests, loading, error, refetch: fetchRequests }
 }
