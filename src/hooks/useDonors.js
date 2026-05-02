@@ -40,8 +40,9 @@ export function useDonors() {
     fetchDonors()
 
     // Incremental realtime updates — avoids full re-fetch on every change
+    const channelName = `donors_realtime_${Math.random().toString(36).substring(7)}`
     const channel = supabase
-      .channel('donors_realtime')
+      .channel(channelName)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'donors' },
         (payload) => {

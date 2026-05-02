@@ -55,8 +55,9 @@ export function useRequests() {
     isMounted.current = true
     fetchRequests()
 
+    const channelName = `blood_requests_realtime_${Math.random().toString(36).substring(7)}`
     const channel = supabase
-      .channel('blood_requests_realtime')
+      .channel(channelName)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'blood_requests' },
         fetchRequests
