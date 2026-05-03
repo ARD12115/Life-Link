@@ -7,6 +7,7 @@ Life Link connects hospitals that need blood **right now** with available, match
 ## ✅ Status: Production-Ready
 
 **Latest Updates:**
+
 - ✅ Supabase integration with email/password authentication (magic link disabled)
 - ✅ Role-based access control (Hospital/Donor)
 - ✅ Row-Level Security (RLS) with simplified policies (recursion fixed)
@@ -26,6 +27,7 @@ Life Link connects hospitals that need blood **right now** with available, match
 ### 1. Environment Variables (Done ✅)
 
 Your `.env` file contains:
+
 ```
 REACT_APP_SUPABASE_URL=https://[YOUR-PROJECT-ID].supabase.co
 REACT_APP_SUPABASE_PUBLISHABLE_KEY=[YOUR-ANON-KEY]
@@ -37,6 +39,7 @@ DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-ID].supabase
 **Note:** These are public keys (safe to commit). Sensitive operations use Row-Level Security policies.
 
 ### 1.5 Role Flow and Switching
+
 The app uses a single Supabase authenticated user record and a separate `profiles` row to store role selection.
 
 - First login: choose Hospital or Donor
@@ -48,6 +51,7 @@ This is expected behavior for testing both roles in the same browser session.
 ### 2. Database Schema (Done ✅)
 
 The `supabase_schema.sql` file is applied to your hosted Supabase database with:
+
 - ✅ 5 tables: `profiles`, `donors`, `hospitals`, `blood_requests`, `donor_responses`
 - ✅ Row-Level Security policies (simplified to avoid recursion)
 - ✅ Realtime configuration on core tables
@@ -56,6 +60,7 @@ The `supabase_schema.sql` file is applied to your hosted Supabase database with:
 ### 3. MCP Configuration (Done ✅)
 
 MCP server is configured in `.vscode/mcp.json`:
+
 ```json
 {
   "servers": {
@@ -75,6 +80,7 @@ Supabase agent skills are installed for enhanced development experience.
 ### 5. Dependencies (Done ✅)
 
 Required packages installed:
+
 - `@supabase/supabase-js`: Supabase client library
 - `postgres`: PostgreSQL client for direct database connections
 - `lucide-react`: Icons
@@ -98,7 +104,9 @@ The app opens at [http://localhost:3000](http://localhost:3000).
 ## 🔐 Authentication & Authorization
 
 ### Email & Password Authentication
+
 Users log in using standard email and password credentials:
+
 ```javascript
 await supabase.auth.signInWithPassword({
   email: 'user@hospital.com',
@@ -107,14 +115,18 @@ await supabase.auth.signInWithPassword({
 ```
 
 ### Role-Based Access Control
+
 After authentication, users select their role (Hospital or Donor):
+
 - **Hospital**: Create blood requests, manage donor responses
 - **Donor**: Receive alerts, respond to requests, manage availability
 
 Roles are stored in the `profiles` table with Row-Level Security policies ensuring users can only see authorized data.
 
 ### Row-Level Security (RLS)
+
 All tables enforce strict RLS policies:
+
 - Hospitals can only manage their own requests
 - Donors can only see alerts assigned to them
 - Policies use `DO` blocks for idempotent application
@@ -168,7 +180,7 @@ No page refresh required — Supabase Realtime pushes all changes.
 | **Real-time sync** | ✅ Done | Supabase Realtime channels |
 | **SMS alerts** | ⏳ Pending | Create a Supabase Edge Function that calls Twilio |
 | **Maps** | ⏳ Pending | Embed Mapbox GL JS with hospital locations |
-| **Blood compatibility** | ⏳ Pending | Expand matching logic beyond exact blood group |
+| **Blood compatibility** | ✅ Done | Expand matching logic beyond exact blood group |
 | **Push notifications** | ⏳ Pending | Web Push API + Edge Function for browser notifications |
 | **Deploy to Vercel** | ⏳ Ready | `npm run build` → push to GitHub → import into Vercel |
 
@@ -186,7 +198,7 @@ No page refresh required — Supabase Realtime pushes all changes.
 
 ## 🧪 Testing the App
 
-1. **Visit** http://localhost:3000
+1. **Visit** <http://localhost:3000>
 2. **Login** with your email and password
 3. **Select Role** (Hospital or Donor)
 4. **Open DevTools** (F12 → Console) to monitor real-time sync
@@ -207,9 +219,9 @@ No page refresh required — Supabase Realtime pushes all changes.
 ## 🔗 Resources
 
 - Supabase Project: `https://app.supabase.com/project/[your-project-id]`
-- GitHub Repository: https://github.com/1LifeLink1/LifeLink
-- React Documentation: https://react.dev
-- Supabase Documentation: https://supabase.com/docs
+- GitHub Repository: <https://github.com/1LifeLink1/LifeLink>
+- React Documentation: <https://react.dev>
+- Supabase Documentation: <https://supabase.com/docs>
 
 ---
 
