@@ -91,10 +91,10 @@ F12 → Console tab
 
 ### Step 2: Try the Login Flow
 
-1. Enter any email address
-2. Check your email inbox (usually ~1 min)
-3. Click the magic link
-4. Browser redirects to app
+1. Enter email and password to sign in or sign up
+2. Check your email inbox (if signing up)
+3. Click the confirmation link (if signing up)
+4. Browser redirects to app (after login)
 5. Select role (Hospital or Donor)
 6. Click "Continue"
 7. Dashboard loads with your role ✨
@@ -217,7 +217,7 @@ npm start
 
 Your LifeLink application is:
 
-- ✅ Securely authenticated with magic links
+- ✅ Securely authenticated with email and password
 - ✅ Role-based with proper authorization
 - ✅ Real-time with instant data sync
 - ✅ Pushed to GitHub for version control

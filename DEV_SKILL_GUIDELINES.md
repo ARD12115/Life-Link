@@ -11,6 +11,7 @@ It is intended to be reviewed before and after every change by the developer ass
 - **2024-04-19**: Updated environment variables with actual Supabase project details
 - **2024-04-19**: Configured MCP server and installed agent skills
 - **2024-04-19**: Added postgres package and db.js for direct database connections
+- **2026-05-03**: Rewrote markdown files to strictly reflect standard Email/Password authentication, removing all mentions of Magic Link to match the current configuration.
 
 ## Purpose
 

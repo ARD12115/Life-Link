@@ -122,10 +122,6 @@ REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_anon_key
 - The **Anon/Publishable Key** can be committed (it's public-facing)
 - Never commit your **Service Role Key** (that's private!)
 - All sensitive operations are protected by Row-Level Security policies
-- Replace `your-project-id` with your actual project ID from Supabase Dashboard
-- The **Anon/Publishable Key** can be committed (it's public-facing)
-- Never commit your **Service Role Key** (that's private!)
-- All sensitive operations are protected by Row-Level Security policies
 
 ### Get Fresh Keys (if needed):
 1. Go to **Settings** → **API**
@@ -205,21 +201,21 @@ SELECT COUNT(*) as hospital_count FROM hospitals;
 
 ## Step 8: Authentication Setup
 
-### Magic Link OTP Configuration:
+### Email & Password Configuration:
 1. Go to **Authentication** → **Providers**
 2. Click **Email**
 3. Verify **Enable Email Auth** is ON ✅
-4. Configure email template (optional)
+4. Verify **Confirm email** is ON (or OFF for testing)
+5. Disable **Magic Link** if it was enabled.
 
-### Test Magic Link:
+### Test Authentication:
 1. Go to app: http://localhost:3000
-2. Enter email: `test@example.com`
-3. Click **"Send Magic Link"**
-4. Check email inbox (wait ~1 min)
-5. Click link in email
-6. Browser redirects to app
-7. Select role (Hospital/Donor)
-8. Dashboard loads ✨
+2. Choose **Sign Up** if you don't have an account, or **Sign In** if you do.
+3. Enter your email and password.
+4. Click the appropriate button (Sign Up / Sign In).
+5. If signing up with confirmation required, check email inbox and click the link.
+6. Once logged in, select role (Hospital/Donor).
+7. Dashboard loads ✨
 
 > If you log in again with the same email, the app will restore your existing profile from `profiles`.
 > If you want to switch role, use the **Switch Role** button in the dashboard header.
@@ -256,7 +252,7 @@ If it does, the policy is already there — just reload the app.
 3. Verify internet connection
 4. Try in incognito mode (clear cache)
 
-### ❌ Magic link not received
+### ❌ Confirmation email not received
 **Fix:**
 1. Check spam folder
 2. Wait 2 minutes (email can be slow)
@@ -272,7 +268,7 @@ Before deploying to production:
 - [ ] All 5 tables created and populated
 - [ ] All 9 RLS policies applied
 - [ ] Realtime enabled on `blood_requests` and `donor_responses`
-- [ ] Magic link authentication working
+- [ ] Email/password authentication working
 - [ ] Role-based access working
 - [ ] Real-time data sync working
 - [ ] Environment variables set in deployment platform
@@ -282,11 +278,6 @@ Before deploying to production:
 
 Replace `[your-project-id]` with your actual project ID:
 - **Dashboard**: `https://app.supabase.com/project/[your-project-id]`
-- **SQL Editor**: `https://app.supabase.com/project/[your-project-id]/sql/new`
-- **Tables**: `https://app.supabase.com/project/[your-project-id]/editor`
-- **Auth Users**: `https://app.supabase.com/project/[your-project-id]/auth/users`
-- **Policies**: `https://app.supabase.com/project/[your-project-id]/auth/policies`
-- **API Keys**: `https://app.supabase.com/project/[your-project-id]/settings/api`
 - **SQL Editor**: `https://app.supabase.com/project/[your-project-id]/sql/new`
 - **Tables**: `https://app.supabase.com/project/[your-project-id]/editor`
 - **Auth Users**: `https://app.supabase.com/project/[your-project-id]/auth/users`
@@ -369,7 +360,7 @@ Once connection is verified:
 4. ✅ Hospital updates status → Donor sees confirmation
 
 If all works, you're ready to add:
-- Authentication (magic link OTP)
+- Authentication (email and password)
 - SMS notifications
 - Location maps
 - Push notifications

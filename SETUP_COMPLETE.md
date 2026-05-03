@@ -94,10 +94,10 @@
 ### App Flow
 ```
 Homepage (unauthenticated)
-    ↓ [Magic Link Login]
+    ↓ [Email/Password Sign In or Sign Up]
     ↓
 Auth Verification
-    ↓ [Email confirmation]
+    ↓ [Email confirmation if signing up]
     ↓
 RoleSelector Component
     ↓ [Choose Hospital or Donor]
@@ -113,8 +113,8 @@ Hospital Dashboard OR Donor Dashboard
 ## 📊 Testing Checklist
 
 - [ ] Open http://localhost:3000
-- [ ] Login with email (receive magic link)
-- [ ] Click magic link in email
+- [ ] Sign up or sign in with email and password
+- [ ] Verify email if signing up
 - [ ] Select role (Hospital or Donor)
 - [ ] Profile appears in profiles table ✅
 - [ ] Open two browser tabs side-by-side
@@ -128,7 +128,7 @@ Hospital Dashboard OR Donor Dashboard
 
 ## 🔐 Security Features
 
-1. **Magic Link Authentication** - Passwordless, email-based OTP
+1. **Email/Password Authentication** - Standard secure authentication
 2. **Role-Based Access Control** - Hospital vs Donor roles stored in database
 3. **Row-Level Security (RLS)** - Database enforces access policies
 4. **Environment Variables** - Sensitive keys in .env (not committed)
@@ -166,7 +166,7 @@ Hospital Dashboard OR Donor Dashboard
 | Supabase Project | [your-project-id] |
 | Database Tables | 5 |
 | RLS Policies | 9 |
-| Auth Method | Magic Link OTP |
+| Auth Method | Email and Password |
 | Real-time Tables | 2 |
 | Components | 6+ |
 | GitHub Repo | 1LifeLink1/LifeLink |
@@ -335,7 +335,7 @@ Everything is set up and ready for you to test. The app is:
 
 Once everything is working:
 1. ✅ Test all features work
-2. ✅ Add authentication (magic links)
+2. ✅ Add authentication (email/password)
 3. ✅ Add SMS notifications
 4. ✅ Implement location tracking
 5. ✅ Deploy to production

@@ -84,7 +84,7 @@ Required packages installed:
 
 `db.js` file created for direct PostgreSQL connections using the postgres package.
 
-### 3. Install dependencies and start
+### 7. Install dependencies and start
 
 ```bash
 npm install
@@ -95,32 +95,14 @@ The app opens at [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🗺️ File map
+## 🔐 Authentication & Authorization
 
-| File | Purpose |
-|---|---|
-| `public/index.html` | HTML shell — Google Fonts, meta tags, global CSS reset |
-| `src/index.js` | React 18 entry point |
-| `src/App.jsx` | Top-level view switcher (Hospital staff / Blood donor) |
-| `src/lib/supabase.js` | Supabase client — **paste your keys here** |
-| `src/hooks/useRequests.js` | Fetches all blood requests (joined with hospitals + donor responses). Subscribes to Postgres Realtime on both `blood_requests` and `donor_responses` tables. |
-| `src/hooks/useDonors.js` | Fetches donors and hospitals. Real-time donor availability updates. |
-| `src/components/HospitalDashboard.jsx` | Hospital view: stat cards, request list, donor-response expansion, status controls, new-request modal with live donor-match count. |
-| `src/components/DonorDashboard.jsx` | Donor view: profile card, availability toggle, alert response (confirm / decline / donated), all open requests. |
-| `supabase_schema.sql` | Full SQL — tables, RLS policies, Realtime setup, seed data. |
-
----
-
-## � Authentication & Authorization
-
-### Magic Link OTP
-Users log in via email-based magic links (passwordless):
+### Email & Password Authentication
+Users log in using standard email and password credentials:
 ```javascript
-await supabase.auth.signInWithOtp({
+await supabase.auth.signInWithPassword({
   email: 'user@hospital.com',
-  options: {
-    emailRedirectTo: window.location.origin
-  }
+  password: 'user_password'
 })
 ```
 
@@ -146,7 +128,7 @@ All tables enforce strict RLS policies:
 | `public/index.html` | HTML shell — Google Fonts, meta tags, global CSS reset |
 | `src/index.js` | React 18 entry point |
 | `src/App.jsx` | Top-level auth & profile router |
-| `src/components/Auth.jsx` | Magic link OTP login screen |
+| `src/components/Auth.jsx` | Email/password login and sign up screen |
 | `src/components/RoleSelector.jsx` | Hospital/Donor role selection (onboarding) |
 | `src/components/HospitalDashboard.jsx` | Hospital view: create requests, manage responses |
 | `src/components/DonorDashboard.jsx` | Donor view: receive alerts, respond to requests |
@@ -181,7 +163,7 @@ No page refresh required — Supabase Realtime pushes all changes.
 
 | Feature | Status | How |
 |---|---|---|
-| **Authentication** | ✅ Done | Magic link OTP with Supabase Auth |
+| **Authentication** | ✅ Done | Email/password with Supabase Auth |
 | **Role-based access** | ✅ Done | Profiles table + RLS policies |
 | **Real-time sync** | ✅ Done | Supabase Realtime channels |
 | **SMS alerts** | ⏳ Pending | Create a Supabase Edge Function that calls Twilio |
@@ -205,7 +187,7 @@ No page refresh required — Supabase Realtime pushes all changes.
 ## 🧪 Testing the App
 
 1. **Visit** http://localhost:3000
-2. **Login** with your email (magic link)
+2. **Login** with your email and password
 3. **Select Role** (Hospital or Donor)
 4. **Open DevTools** (F12 → Console) to monitor real-time sync
 5. **Open two tabs** to see real-time updates across devices
@@ -222,7 +204,7 @@ No page refresh required — Supabase Realtime pushes all changes.
 
 ---
 
-## 🔗 Resources`https://app.supabase.com/project/[your-project-id]`
+## 🔗 Resources
 
 - Supabase Project: `https://app.supabase.com/project/[your-project-id]`
 - GitHub Repository: https://github.com/1LifeLink1/LifeLink
@@ -232,6 +214,3 @@ No page refresh required — Supabase Realtime pushes all changes.
 ---
 
 > Built with security-first approach. Row-Level Security policies ensure proper data isolation. For production, add rate-limiting on the Edge and implement additional audit logging.
-#   L i f e - L i n k  
- #   L i f e - L i n k  
- 

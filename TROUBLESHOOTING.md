@@ -199,7 +199,7 @@ Failed to parse source map from '@supabase/functions-js/src/FunctionsClient.ts'
 - **Status:** Clean
 
 ### ✅ Auth.jsx
-- Magic link OTP implementation correct
+- Email/password authentication implementation correct
 - Email validation built-in via `type="email"`
 - Proper error handling
 - **Status:** Clean
@@ -222,8 +222,8 @@ Failed to parse source map from '@supabase/functions-js/src/FunctionsClient.ts'
 
 Your app is ready to test! Go to `http://localhost:3000` and:
 
-1. **Login:** Enter an email and click "Send Magic Link"
-2. **Check Email:** Find the magic link and click it
+1. **Login:** Enter email and password to sign in or sign up
+2. **Check Email:** (If signing up) Find the confirmation link and click it
 3. **Select Role:** Choose Hospital or Donor
 4. **See Dashboard:** Your appropriate dashboard should render
 5. **Test Realtime:** Open two browsers side-by-side and make changes — see updates in real-time

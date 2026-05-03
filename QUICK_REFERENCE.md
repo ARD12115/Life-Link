@@ -56,8 +56,8 @@ http://localhost:3000
 F12
 
 # 4. Try the flow
-├─ Enter email → Get magic link
-├─ Click magic link in email
+├─ Sign up or sign in with email and password
+├─ Verify email if signing up
 ├─ Choose role (Hospital or Donor)
 ├─ See dashboard
 └─ Open 2 tabs to test real-time
@@ -77,7 +77,7 @@ F12
 | `.env` | Your Supabase keys (DO NOT COMMIT secrets here) |
 | `src/lib/supabase.js` | Supabase client — reads from .env |
 | `src/App.jsx` | Auth router — handles login/role/dashboard flow |
-| `src/components/Auth.jsx` | Magic link OTP form |
+| `src/components/Auth.jsx` | Email/password login and sign up form |
 | `src/components/RoleSelector.jsx` | Hospital/Donor choice & profile creation |
 | `src/hooks/useRequests.js` | Fetches + real-time syncs blood requests |
 | `src/hooks/useDonors.js` | Fetches + real-time syncs donors/hospitals |
@@ -100,8 +100,6 @@ F12
 
 **⚠️ Never commit your actual Project ID or API keys to GitHub!**
 
-**⚠️ Never commit your actual Project ID or API keys to GitHub!**
-
 ---
 
 ## ✅ Pre-Launch Checklist
@@ -109,7 +107,7 @@ F12
 - [ ] `.env` file has REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_PUBLISHABLE_KEY
 - [ ] `npm start` runs without errors (only webpack warnings OK)
 - [ ] http://localhost:3000 opens in browser
-- [ ] Email login works (magic link received)
+- [ ] Authentication works (sign in / sign up)
 - [ ] Role selector appears after email verification
 - [ ] Dashboard renders after role selection
 - [ ] Open 2 tabs and verify real-time updates (no page refresh needed)
@@ -181,7 +179,7 @@ WHERE schemaname = 'public';
 - [ ] Real-time updates instant
 
 Once all checked ✅, you're ready to:
-- Add authentication
+- Test authentication
 - Deploy to production
 - Add SMS notifications
 - Build more features
@@ -191,7 +189,7 @@ Once all checked ✅, you're ready to:
 ## 🎓 Learning Resources
 
 **What to learn next:**
-1. Supabase Auth (magic links / OTP)
+1. Supabase Auth (email/password)
 2. PostgreSQL queries basics
 3. React hooks best practices
 4. Real-time data patterns
