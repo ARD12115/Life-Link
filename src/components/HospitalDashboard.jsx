@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRequests } from '../hooks/useRequests'
 import { useDonors } from '../hooks/useDonors'
+import { getCompatibleDonorGroups } from '../lib/bloodLogic'
 import {
   AlertCircle, Clock, CheckCircle, Plus, X,
   Activity, ChevronDown, ChevronUp, MapPin, 
@@ -55,7 +56,8 @@ function NewRequestModal({ myHospital, onClose }) {
       .select().single()
 
     if (!error && data) {
-      const matched = donors.filter(d => d.blood_group === form.blood_group && d.available)
+      const compatibleGroups = getCompatibleDonorGroups(form.blood_group)
+      const matched = donors.filter(d => compatibleGroups.includes(d.blood_group) && d.available)
       if (matched.length > 0) {
         await supabase.from('donor_responses').insert(
           matched.map(d => ({ request_id: data.id, donor_id: d.id, status: 'alerted' }))
@@ -66,7 +68,8 @@ function NewRequestModal({ myHospital, onClose }) {
     setLoading(false)
   }
 
-  const matchedDonors = donors.filter(d => d.blood_group === form.blood_group && d.available).length
+  const compatibleGroups = getCompatibleDonorGroups(form.blood_group)
+  const matchedDonors = donors.filter(d => compatibleGroups.includes(d.blood_group) && d.available).length
 
   return (
     <div className="modal-overlay">
@@ -139,6 +142,7 @@ export default function HospitalDashboard({ user }) {
   const [showModal, setShowModal]   = useState(false)
   const [expandedId, setExpandedId] = useState(null)
   const [activeTab, setActiveTab]   = useState('emergencies')
+  const [selectedDonor, setSelectedDonor] = useState(null)
 
   useEffect(() => {
     async function loadProfile() {
@@ -289,36 +293,85 @@ export default function HospitalDashboard({ user }) {
             <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Total registered donors in the LifeLink network.</p>
           </div>
           
-          <div className="directory-grid">
-            {donors.map(donor => (
-              <div key={donor.id} className="ui-panel directory-card">
-                <div className="directory-card-header">
-                  <div className="blood-tag flex-center" style={{ justifyContent: 'center' }}>{donor.blood_group}</div>
-                  <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{donor.name}</h3>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Joined {new Date(donor.created_at).toLocaleDateString()}</div>
+          <div className="master-detail-container">
+            <div className="master-list">
+              {donors.length === 0 ? (
+                <div className="ui-panel flex-center" style={{ padding: '40px', justifyContent: 'center', borderStyle: 'dashed', background: 'transparent' }}>
+                  <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No donors found</p>
+                </div>
+              ) : (
+                donors.map(donor => (
+                  <div 
+                    key={donor.id} 
+                    className={`ui-panel directory-card master-item ${selectedDonor?.id === donor.id ? 'active' : ''}`}
+                    onClick={() => setSelectedDonor(donor)}
+                    style={{ cursor: 'pointer', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}
+                  >
+                    <div className="blood-tag" style={{ minWidth: '48px', padding: '8px 0', fontSize: '14px', justifyContent: 'center', display: 'flex' }}>
+                      {donor.blood_group}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{donor.name}</h3>
+                      <div className="flex-center" style={{ gap: '6px', fontSize: '13px', marginTop: '4px', color: 'var(--text-muted)' }}>
+                        <span className={`status-dot ${donor.available ? 'active' : 'offline'}`}></span>
+                        {donor.available ? 'Available' : 'Offline'}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            <div className="detail-pane ui-panel" style={{ padding: '32px', minHeight: '400px' }}>
+              {selectedDonor ? (
+                <div className="fade-in">
+                  <div className="flex-between" style={{ marginBottom: '32px' }}>
+                    <div className="flex-center" style={{ gap: '20px' }}>
+                      <div className="blood-tag" style={{ width: '64px', height: '64px', fontSize: '24px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {selectedDonor.name[0]}
+                      </div>
+                      <div>
+                        <h2 style={{ fontSize: '24px', marginBottom: '4px' }}>{selectedDonor.name}</h2>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+                          Blood Group: <strong style={{ color: 'var(--text-main)' }}>{selectedDonor.blood_group}</strong>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-center" style={{ gap: '8px', fontSize: '14px', fontWeight: 600, padding: '8px 16px', borderRadius: '20px', background: 'var(--bg-app)', border: '1px solid var(--border-soft)' }}>
+                      <span className={`status-dot ${selectedDonor.available ? 'active' : 'offline'}`}></span>
+                      {selectedDonor.available ? 'Ready for Donation' : 'Currently Offline'}
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+                    <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '20px' }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px' }}>Location</div>
+                      <div className="flex-center" style={{ gap: '8px', fontSize: '16px', fontWeight: 500 }}><MapPin size={18} /> {selectedDonor.city}</div>
+                    </div>
+                    <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '20px' }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px' }}>Contact Number</div>
+                      <div className="flex-center" style={{ gap: '8px', fontSize: '16px', fontWeight: 500 }}><Phone size={18} /> {selectedDonor.phone || 'N/A'}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '24px' }}>
+                    <div className="flex-between" style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-soft)', marginBottom: '16px' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Total Lifetime Donations</span>
+                      <strong style={{ fontSize: '18px' }}>{selectedDonor.total_donations || 0}</strong>
+                    </div>
+                    <div className="flex-between">
+                      <span style={{ color: 'var(--text-muted)' }}>Joined Network</span>
+                      <strong style={{ fontSize: '16px' }}>{new Date(selectedDonor.created_at).toLocaleDateString()}</strong>
+                    </div>
                   </div>
                 </div>
-                <div className="directory-card-body">
-                  <div className="flex-center" style={{ gap: '8px' }}><MapPin size={16} /> {donor.city}</div>
-                  <div className="flex-center" style={{ gap: '8px' }}><Phone size={16} /> {donor.phone || 'N/A'}</div>
+              ) : (
+                <div className="flex-center" style={{ height: '100%', flexDirection: 'column', gap: '16px', color: 'var(--text-muted)' }}>
+                  <Users size={48} strokeWidth={1} style={{ opacity: 0.5 }} />
+                  <p style={{ fontSize: '16px' }}>Select a donor to view details</p>
                 </div>
-                <div className="directory-card-footer">
-                  <div className="flex-center" style={{ gap: '6px', fontSize: '13px', fontWeight: 700, color: donor.available ? 'var(--accent-green)' : 'var(--text-muted)' }}>
-                    {donor.available ? <CheckCircle size={14} /> : <X size={14} />}
-                    {donor.available ? 'AVAILABLE' : 'OFFLINE'}
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>
-                    {donor.total_donations} Donations
-                  </div>
-                </div>
-              </div>
-            ))}
-            {donors.length === 0 && (
-              <div className="ui-panel flex-center" style={{ padding: '80px', gridColumn: '1 / -1', justifyContent: 'center', borderStyle: 'dashed', background: 'transparent' }}>
-                <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No donors found in the network</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </section>
       )}

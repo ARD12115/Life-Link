@@ -79,10 +79,18 @@ export default function DonorDashboard({ user }) {
   const { requests, loading, refetch } = useRequests()
   const { hospitals } = useHospitals()
   const [activeTab, setActiveTab] = useState('alerts')
+  const [selectedHospital, setSelectedHospital] = useState(null)
 
   useEffect(() => {
     async function loadDonorProfile() {
-      if (!user) return
+      if (!user) {
+        const { error } = await supabase.auth.signInAnonymously()
+        if (error) {
+          console.error("Anonymous auth failed. Please enable Anonymous Sign-Ins in Supabase:", error)
+          setProfileLoading(false)
+        }
+        return // App.jsx will pass the new user once session updates
+      }
       const { data } = await supabase.from('donors').select('*').eq('user_id', user.id).single()
       if (data) setDonor(data)
       setProfileLoading(false)
@@ -113,6 +121,7 @@ export default function DonorDashboard({ user }) {
           onSubmit={async (e) => {
             e.preventDefault()
             const fd = new FormData(e.target)
+            if (!user) return alert("Anonymous authentication failed. Please check console.")
             const { data } = await supabase.from('donors').insert([{ user_id: user.id, name: fd.get('name'), blood_group: fd.get('blood_group'), city: fd.get('city'), phone: fd.get('phone') }]).select().single()
             if (data) setDonor(data)
           }}>
@@ -217,34 +226,84 @@ export default function DonorDashboard({ user }) {
             <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Medical facilities connected to the LifeLink network.</p>
           </div>
           
-          <div className="directory-grid">
-            {hospitals.map(hospital => (
-              <div key={hospital.id} className="ui-panel directory-card">
-                <div className="directory-card-header">
-                  <div className="blood-tag flex-center" style={{ justifyContent: 'center', background: 'var(--bg-app)', color: 'var(--accent-blue)', boxShadow: 'none', border: '1px solid var(--border-soft)' }}>
-                    <Hospital size={24} />
+          <div className="master-detail-container">
+            <div className="master-list">
+              {hospitals.length === 0 ? (
+                <div className="ui-panel flex-center" style={{ padding: '40px', justifyContent: 'center', borderStyle: 'dashed', background: 'transparent' }}>
+                  <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No hospitals registered yet.</p>
+                </div>
+              ) : (
+                hospitals.map(hospital => (
+                  <div 
+                    key={hospital.id} 
+                    className={`ui-panel directory-card master-item ${selectedHospital?.id === hospital.id ? 'active' : ''}`}
+                    onClick={() => setSelectedHospital(hospital)}
+                    style={{ cursor: 'pointer', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}
+                  >
+                    <div className="blood-tag flex-center" style={{ minWidth: '48px', height: '48px', justifyContent: 'center', background: 'var(--bg-app)', color: 'var(--accent-blue)', boxShadow: 'none', border: '1px solid var(--border-soft)' }}>
+                      <Hospital size={20} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{hospital.name}</h3>
+                      <div className="flex-center" style={{ gap: '6px', fontSize: '13px', marginTop: '4px', color: 'var(--text-muted)' }}>
+                        <span className="status-dot active"></span> Active Facility
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{hospital.name}</h3>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>Joined {new Date(hospital.created_at).toLocaleDateString()}</div>
+                ))
+              )}
+            </div>
+            
+            <div className="detail-pane ui-panel" style={{ padding: '32px', minHeight: '400px' }}>
+              {selectedHospital ? (
+                <div className="fade-in">
+                  <div className="flex-between" style={{ marginBottom: '32px' }}>
+                    <div className="flex-center" style={{ gap: '20px' }}>
+                      <div className="blood-tag flex-center" style={{ width: '64px', height: '64px', fontSize: '24px', borderRadius: '16px', background: 'var(--bg-app)', color: 'var(--accent-blue)', boxShadow: 'none', border: '1px solid var(--border-soft)' }}>
+                        <Hospital size={32} />
+                      </div>
+                      <div>
+                        <h2 style={{ fontSize: '24px', marginBottom: '4px' }}>{selectedHospital.name}</h2>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+                          Registered Medical Facility
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-center" style={{ gap: '8px', fontSize: '14px', fontWeight: 600, padding: '8px 16px', borderRadius: '20px', background: 'var(--bg-app)', border: '1px solid var(--border-soft)' }}>
+                      <span className="status-dot active"></span>
+                      Verified
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
+                    <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '20px' }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px' }}>Location</div>
+                      <div className="flex-center" style={{ gap: '8px', fontSize: '16px', fontWeight: 500 }}><MapPin size={18} /> {selectedHospital.city}</div>
+                    </div>
+                    <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '20px' }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px' }}>Contact Number</div>
+                      <div className="flex-center" style={{ gap: '8px', fontSize: '16px', fontWeight: 500 }}><Phone size={18} /> {selectedHospital.phone || 'N/A'}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '24px' }}>
+                    <div className="flex-between" style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-soft)', marginBottom: '16px' }}>
+                      <span style={{ color: 'var(--text-muted)' }}>Contact Person</span>
+                      <strong style={{ fontSize: '16px' }}>{selectedHospital.contact_person || 'N/A'}</strong>
+                    </div>
+                    <div className="flex-between">
+                      <span style={{ color: 'var(--text-muted)' }}>Joined Network</span>
+                      <strong style={{ fontSize: '16px' }}>{new Date(selectedHospital.created_at).toLocaleDateString()}</strong>
+                    </div>
                   </div>
                 </div>
-                <div className="directory-card-body">
-                  <div className="flex-center" style={{ gap: '8px' }}><MapPin size={16} /> {hospital.city}</div>
-                  <div className="flex-center" style={{ gap: '8px' }}><Phone size={16} /> {hospital.phone || 'N/A'}</div>
+              ) : (
+                <div className="flex-center" style={{ height: '100%', flexDirection: 'column', gap: '16px', color: 'var(--text-muted)' }}>
+                  <Hospital size={48} strokeWidth={1} style={{ opacity: 0.5 }} />
+                  <p style={{ fontSize: '16px' }}>Select a hospital to view details</p>
                 </div>
-                <div className="directory-card-footer">
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                    Contact: <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{hospital.contact_person || 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {hospitals.length === 0 && (
-              <div className="ui-panel flex-center" style={{ padding: '80px', gridColumn: '1 / -1', justifyContent: 'center', borderStyle: 'dashed', background: 'transparent' }}>
-                <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No hospitals registered yet.</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </section>
       )}
