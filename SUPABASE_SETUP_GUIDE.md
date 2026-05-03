@@ -3,8 +3,8 @@
 ## Project Details
 
 - **Project Name**: LifeLink
-- **Project ID**: `hqdiqjswknukqyghtgsa`
-- **Project URL**: `https://hqdiqjswknukqyghtgsa.supabase.co`
+- **Project ID**: `[YOUR-PROJECT-ID]`
+- **Project URL**: `https://[YOUR-PROJECT-ID].supabase.co`
 - **Status**: ✅ Fully configured and ready
 
 ---
@@ -22,7 +22,7 @@ Your Supabase project is set up with:
 
 **Check Status:**
 1. Go to https://supabase.com/dashboard
-2. Open your project (ID: hqdiqjswknukqyghtgsa)
+2. Open your project (ID: [YOUR-PROJECT-ID])
 3. Look for green **"Connected"** status in top bar
 
 ---

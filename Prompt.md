@@ -7,7 +7,7 @@ Project Status: Prototype with production-ready security hardening completed.
 Tech Stack:
 
 Frontend: React 18 + Create React App
-Backend: Supabase (hosted at https://hqdiqjswknukqyghtgsa.supabase.co)
+Backend: Supabase (hosted at https://[YOUR-PROJECT-ID].supabase.co)
 ORM: Prisma 5.17.0 (installed, optional for future backend)
 Auth: Supabase email/password authentication (magic link disabled)
 Database: PostgreSQL via Supabase
@@ -53,7 +53,7 @@ Remote: origin → https://github.com/1LifeLink1/LifeLink.git
 Environment Variables Required:
 
 REACT_APP_SUPABASE_URL=https://[your-project-id].supabase.co
-REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_Nsi9ZmjBsb5wJfLipIvmCQ_iPAIH3CT
+REACT_APP_SUPABASE_PUBLISHABLE_KEY=[YOUR-ANON-KEY]
 DATABASE_URL="postgresql://postgres.[your-project-id]:[PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://postgres.[your-project-id]:[PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
 
