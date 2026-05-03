@@ -27,9 +27,9 @@ Life Link connects hospitals that need blood **right now** with available, match
 
 Your `.env` file contains:
 ```
-REACT_APP_SUPABASE_URL=https://hqdiqjswknukqyghtgsa.supabase.co
-REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_Nsi9ZmjBsb5wJfLipIvmCQ_iPAIH3CT
-DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.hqdiqjswknukqyghtgsa.supabase.co:5432/postgres
+REACT_APP_SUPABASE_URL=https://[YOUR-PROJECT-ID].supabase.co
+REACT_APP_SUPABASE_PUBLISHABLE_KEY=[YOUR-ANON-KEY]
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-ID].supabase.co:5432/postgres
 ```
 
 **⚠️ Important:** Replace `[YOUR-PASSWORD]` with your actual database password from Supabase dashboard (Settings > Database > Password). Never commit real credentials to GitHub.
@@ -61,7 +61,7 @@ MCP server is configured in `.vscode/mcp.json`:
   "servers": {
     "supabase": {
       "type": "http",
-      "url": "https://mcp.supabase.com/mcp?project_ref=hqdiqjswknukqyghtgsa"
+      "url": "https://mcp.supabase.com/mcp?project_ref=[YOUR-PROJECT-ID]"
     }
   },
   "inputs": []
