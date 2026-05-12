@@ -1,99 +1,151 @@
-# 🩸 Life Link — Real-time Emergency Blood Donor Matching
+<p align="center">
+  <img src="public/LOGO.png" alt="LifeLink Logo" width="120" />
+</p>
 
-Life Link connects hospitals that need blood **right now** with available, matched donors — with zero page refreshes, powered by Supabase Realtime and Row-Level Security.
+<h1 align="center">LifeLink</h1>
 
----
+<p align="center">
+  <strong>Real-time emergency blood donor matching platform</strong><br/>
+  Connecting hospitals that need blood <em>right now</em> with available, compatible donors — instantly.
+</p>
 
-## ✅ Status: Production-Ready
-
-**Latest Updates:**
-
-- ✅ Supabase integration with email/password authentication (magic link disabled)
-- ✅ Role-based access control (Hospital/Donor)
-- ✅ Row-Level Security (RLS) with simplified policies (recursion fixed)
-- ✅ Profiles table for user role management
-- ✅ Real-time data syncing
-- ✅ GitHub repository linked and pushed
-- ✅ Environment variables configured
-- ✅ MCP server configured
-- ✅ Agent skills installed
-- ✅ Database connection setup
-- ✅ Code reviewed and tested
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white" alt="React 18" />
+  <img src="https://img.shields.io/badge/Supabase-Realtime-3FCF8E?logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/PostgreSQL-RLS-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="MIT License" />
+</p>
 
 ---
 
-## ⚡ Quick Setup
+## About
 
-### 1. Environment Variables (Done ✅)
+LifeLink bridges the critical gap between hospital blood emergencies and volunteer donors. When a hospital posts an urgent blood request, compatible donors are alerted in real-time — no page refreshes, no phone calls, no delays.
 
-Your `.env` file contains:
+**Key capabilities:**
 
-```
-REACT_APP_SUPABASE_URL=https://[YOUR-PROJECT-ID].supabase.co
-REACT_APP_SUPABASE_PUBLISHABLE_KEY=[YOUR-ANON-KEY]
-DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-ID].supabase.co:5432/postgres
-```
+- **Instant matching** — Supabase Realtime pushes alerts to donors the moment a request is posted
+- **Smart compatibility** — Blood type matching goes beyond exact groups using medical compatibility rules
+- **Role-based access** — Hospitals manage requests; donors receive and respond to alerts
+- **Row-Level Security** — Every database query is enforced by PostgreSQL RLS policies
+- **Dark / Light / System themes** — Full theme support with smooth transitions
 
-**⚠️ Important:** Replace `[YOUR-PASSWORD]` with your actual database password from Supabase dashboard (Settings > Database > Password). Never commit real credentials to GitHub.
+---
 
-**Note:** These are public keys (safe to commit). Sensitive operations use Row-Level Security policies.
+## Tech Stack
 
-### 1.5 Role Flow and Switching
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| **Frontend** | React (Create React App) | 18.2 |
+| **Routing** | React Router DOM | 7.x |
+| **Backend** | Supabase (PostgreSQL + Realtime + Auth) | 2.x client |
+| **Icons** | Lucide React | 0.383 |
+| **Styling** | Vanilla CSS design system (`index.css`) | — |
+| **ORM** | Prisma (optional, for future backend services) | 5.17 |
+| **Fonts** | Inter, Libre Baskerville (Google Fonts) | — |
 
-The app uses a single Supabase authenticated user record and a separate `profiles` row to store role selection.
+---
 
-- First login: choose Hospital or Donor
-- Same email login: app restores the saved role
-- To switch roles: click **Switch Role** in the dashboard header, confirm, then re-register
+## Architecture
 
-This is expected behavior for testing both roles in the same browser session.
-
-### 2. Database Schema (Done ✅)
-
-The `supabase_schema.sql` file is applied to your hosted Supabase database with:
-
-- ✅ 5 tables: `profiles`, `donors`, `hospitals`, `blood_requests`, `donor_responses`
-- ✅ Row-Level Security policies (simplified to avoid recursion)
-- ✅ Realtime configuration on core tables
-- ✅ Cascading deletes for data integrity
-
-### 3. MCP Configuration (Done ✅)
-
-MCP server is configured in `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "supabase": {
-      "type": "http",
-      "url": "https://mcp.supabase.com/mcp?project_ref=[YOUR-PROJECT-ID]"
-    }
-  },
-  "inputs": []
-}
+```text
+Landing Page  ──────────────────────────────────────────────
+     │                                                      
+     ├──▶  /donor    →  DonorDashboard  (open access)       
+     │                                                      
+     └──▶  /hospital →  Auth gate  →  HospitalDashboard     
+                          │                                  
+                     Email / Password                        
+                     (Supabase Auth)                         
 ```
 
-### 4. Agent Skills (Done ✅)
+Both dashboards receive **real-time updates** via Supabase Realtime channels. The top navigation bar provides theme switching (light / dark / system), sign-out, and application reset.
 
-Supabase agent skills are installed for enhanced development experience.
+---
 
-### 5. Dependencies (Done ✅)
+## Project Structure
 
-Required packages installed:
+```text
+lifelink/
+├── public/
+│   ├── index.html                 # HTML shell — Google Fonts, meta tags, CSS reset
+│   └── LOGO.png                   # Application logo
+├── src/
+│   ├── index.js                   # React 18 entry point
+│   ├── index.css                  # Full design system — themes, components, animations
+│   ├── App.jsx                    # Router + top-nav layout + auth state management
+│   ├── components/
+│   │   ├── LandingPage.jsx        # Hero, "How it works", portal selection
+│   │   ├── Auth.jsx               # Email/password sign-in and sign-up (split-screen)
+│   │   ├── HospitalDashboard.jsx  # Create requests, manage donor responses
+│   │   ├── DonorDashboard.jsx     # Receive alerts, respond, manage availability
+│   │   ├── RoleSelector.jsx       # Role onboarding (legacy, kept for reference)
+│   │   ├── VisualEnvironment.jsx  # Parallax background with 3D blood cell effect
+│   │   ├── SupabaseDropdowns.jsx  # Example: donor/hospital data display
+│   │   └── DebugDashboard.jsx     # Developer diagnostics panel
+│   ├── hooks/
+│   │   ├── useRequests.js         # Fetches blood requests + realtime sync
+│   │   └── useDonors.js           # Fetches donors & hospitals + realtime sync
+│   ├── lib/
+│   │   ├── supabase.js            # Supabase client initialisation
+│   │   ├── bloodLogic.js          # Blood type compatibility map & matching
+│   │   └── supabaseDebug.js       # Connection testing utility
+│   └── context/
+│       └── ThemeContext.js         # Light / dark / system theme provider
+├── prisma/
+│   └── schema.prisma              # ORM schema (optional, future backend)
+├── scripts/
+│   └── setup.js                   # Automated project setup script
+├── supabase_schema.sql            # Full database schema with RLS policies
+├── .env.example                   # Environment variable template
+├── package.json
+└── .gitignore
+```
 
-- `@supabase/supabase-js`: Supabase client library
-- `postgres`: PostgreSQL client for direct database connections
-- `lucide-react`: Icons
-- `react-scripts`: Build tools
+---
 
-### 6. Database Connection (Done ✅)
+## Quick Start
 
-`db.js` file created for direct PostgreSQL connections using the postgres package.
+### Prerequisites
 
-### 7. Install dependencies and start
+- [Node.js](https://nodejs.org/) 18+ and npm
+- A [Supabase](https://supabase.com/) project (free tier works)
+
+### 1. Clone and install
 
 ```bash
+git clone https://github.com/1LifeLink1/LifeLink.git
+cd LifeLink
 npm install
+```
+
+### 2. Configure environment
+
+Copy the template and fill in your Supabase credentials:
+
+```bash
+cp .env.example .env
+```
+
+```dotenv
+# .env
+REACT_APP_SUPABASE_URL=https://<your-project-id>.supabase.co
+REACT_APP_SUPABASE_PUBLISHABLE_KEY=<your-anon-key>
+```
+
+> Find these values in your **Supabase Dashboard → Settings → API**.
+
+### 3. Apply database schema
+
+1. Open your Supabase project → **SQL Editor** → **New Query**
+2. Paste the contents of `supabase_schema.sql`
+3. Click **Run**
+
+This creates all 5 tables, enables Row-Level Security, and configures Realtime.
+
+### 4. Start the dev server
+
+```bash
 npm start
 ```
 
@@ -101,128 +153,134 @@ The app opens at [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🔐 Authentication & Authorization
+## Environment Variables
 
-### Email & Password Authentication
+| Variable | Description | Where to find |
+|----------|-------------|---------------|
+| `REACT_APP_SUPABASE_URL` | Your Supabase project URL | Dashboard → Settings → API → Project URL |
+| `REACT_APP_SUPABASE_PUBLISHABLE_KEY` | Public anon key (safe to commit) | Dashboard → Settings → API → Anon / Public key |
 
-Users log in using standard email and password credentials:
-
-```javascript
-await supabase.auth.signInWithPassword({
-  email: 'user@hospital.com',
-  password: 'user_password'
-})
-```
-
-### Role-Based Access Control
-
-After authentication, users select their role (Hospital or Donor):
-
-- **Hospital**: Create blood requests, manage donor responses
-- **Donor**: Receive alerts, respond to requests, manage availability
-
-Roles are stored in the `profiles` table with Row-Level Security policies ensuring users can only see authorized data.
-
-### Row-Level Security (RLS)
-
-All tables enforce strict RLS policies:
-
-- Hospitals can only manage their own requests
-- Donors can only see alerts assigned to them
-- Policies use `DO` blocks for idempotent application
+> **Note:** The anon key is designed to be public. All sensitive operations are protected by Row-Level Security policies on the database.
 
 ---
 
-## 🗺️ File map
+## Database Schema
 
-| File | Purpose |
-|---|---|
-| `public/index.html` | HTML shell — Google Fonts, meta tags, global CSS reset |
-| `src/index.js` | React 18 entry point |
-| `src/App.jsx` | Top-level auth & profile router |
-| `src/components/Auth.jsx` | Email/password login and sign up screen |
-| `src/components/RoleSelector.jsx` | Hospital/Donor role selection (onboarding) |
-| `src/components/HospitalDashboard.jsx` | Hospital view: create requests, manage responses |
-| `src/components/DonorDashboard.jsx` | Donor view: receive alerts, respond to requests |
-| `src/components/SupabaseDropdowns.jsx` | Example component: donor/hospital data display |
-| `src/components/DebugDashboard.jsx` | Debug panel: connection testing, diagnostics |
-| `src/lib/supabase.js` | Supabase client initialization |
-| `src/hooks/useRequests.js` | Fetches blood requests with realtime sync |
-| `src/hooks/useDonors.js` | Fetches donors/hospitals with realtime sync |
-| `src/context/ThemeContext.js` | Light/dark/system theme management |
-| `supabase_schema.sql` | Database schema with RLS policies (applied ✅) |
-| `prisma/schema.prisma` | Optional: ORM schema for future backend services |
+5 tables with full RLS coverage:
+
+| Table | Purpose | Key columns |
+|-------|---------|-------------|
+| `profiles` | User role metadata | `user_id`, `role` (hospital \| donor), `display_name` |
+| `donors` | Donor information | `user_id`, `name`, `blood_group`, `city`, `available` |
+| `hospitals` | Hospital information | `user_id`, `name`, `city`, `contact_person` |
+| `blood_requests` | Emergency blood requests | `hospital_id`, `blood_group`, `urgency`, `status` |
+| `donor_responses` | Donor reactions to requests | `request_id`, `donor_id`, `status`, `eta_minutes` |
+
+**9 RLS policies** enforce:
+
+- Users can only manage their own records
+- Hospitals manage their requests and view donor responses
+- Authenticated users can read donor and hospital listings
+- Donors can view requests assigned to them
+
+See [`supabase_schema.sql`](supabase_schema.sql) for the complete schema.
 
 ---
 
-## 🔴 Real-time behavior
+## Authentication
+
+LifeLink uses **Supabase email/password authentication**.
+
+| Flow | Description |
+|------|-------------|
+| **Sign Up** | Enter email + password → confirm via email → sign in |
+| **Sign In** | Email + password → redirected to Hospital Dashboard |
+| **Donor access** | No authentication required — register directly from the Donor portal |
+| **Hospital access** | Requires authenticated sign-in through the Facility Portal |
+
+### Supabase Auth Configuration
+
+1. Go to **Authentication → Providers → Email**
+2. Ensure **Enable Email Auth** is ON
+3. Set **Confirm email** as needed (ON for production, OFF for local testing)
+
+---
+
+## Real-time Demo
 
 Open the app in **two browser tabs** side by side:
 
-| Tab 1 (Hospital staff) | Tab 2 (Blood donor) |
+| Tab 1 — Hospital | Tab 2 — Donor |
 |---|---|
-| Log in with hospital email → Select "Hospital" role | Log in with donor email → Select "Donor" role |
-| Click **New Request** → select B+ → post | Tab 2 instantly shows the alert for matching donors |
-| — | Click **I can donate** on any alert |
-| Request card updates to "In progress" | Confirmed banner shows status |
-| Click the card → see the confirmed donor | — |
+| Sign in with hospital credentials | Navigate to `/donor` and register |
+| Click **New Request** → select blood group → post | Alert appears **instantly** for matching donors |
+| — | Click **I can donate** |
+| Request status updates to "In progress" | Confirmation banner shows |
 
-No page refresh required — Supabase Realtime pushes all changes.
-
----
-
-## 🚀 Next steps
-
-| Feature | Status | How |
-|---|---|---|
-| **Authentication** | ✅ Done | Email/password with Supabase Auth |
-| **Role-based access** | ✅ Done | Profiles table + RLS policies |
-| **Real-time sync** | ✅ Done | Supabase Realtime channels |
-| **SMS alerts** | ⏳ Pending | Create a Supabase Edge Function that calls Twilio |
-| **Maps** | ⏳ Pending | Embed Mapbox GL JS with hospital locations |
-| **Blood compatibility** | ✅ Done | Expand matching logic beyond exact blood group |
-| **Push notifications** | ⏳ Pending | Web Push API + Edge Function for browser notifications |
-| **Deploy to Vercel** | ⏳ Ready | `npm run build` → push to GitHub → import into Vercel |
+No page refresh required — Supabase Realtime pushes all changes via WebSocket.
 
 ---
 
-## 🏗️ Tech stack
+## Blood Compatibility
 
-- **Frontend**: React 18 + Context API for themes
-- **Backend**: Supabase (PostgreSQL + Realtime + Auth + RLS)
-- **ORM**: Prisma 5.17.0 (optional, for future backend services)
-- **Icons**: lucide-react
-- **Styling**: CSS-in-JS (inline styles)
+LifeLink uses medical blood type compatibility rules (not just exact matching):
 
----
-
-## 🧪 Testing the App
-
-1. **Visit** <http://localhost:3000>
-2. **Login** with your email and password
-3. **Select Role** (Hospital or Donor)
-4. **Open DevTools** (F12 → Console) to monitor real-time sync
-5. **Open two tabs** to see real-time updates across devices
+| Recipient | Compatible Donor Groups |
+|-----------|------------------------|
+| A+ | A+, A−, O+, O− |
+| A− | A−, O− |
+| B+ | B+, B−, O+, O− |
+| B− | B−, O− |
+| AB+ | All groups (universal recipient) |
+| AB− | AB−, A−, B−, O− |
+| O+ | O+, O− |
+| O− | O− only (universal donor) |
 
 ---
 
-## 📚 Documentation
+## Roadmap
 
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — Common issues and fixes
-- [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md) — Detailed Supabase setup
-- [QUICK_REFERENCE.md](QUICK_REFERENCE.md) — Quick lookup guide
-- [DEV_SKILL_GUIDELINES.md](DEV_SKILL_GUIDELINES.md) — Developer workflow and documentation process
-- [Prompt.txt](Prompt.txt) — Full conversation context for AI assistance
+| Feature | Status |
+|---------|--------|
+| Email/password authentication | ✅ Done |
+| Role-based access (Hospital / Donor) | ✅ Done |
+| Real-time sync via Supabase Realtime | ✅ Done |
+| Blood compatibility matching | ✅ Done |
+| Dark / light / system themes | ✅ Done |
+| Landing page with portal selection | ✅ Done |
+| Router-based navigation | ✅ Done |
+| SMS alerts (Twilio) | ⏳ Planned |
+| Push notifications (Web Push API) | ⏳ Planned |
+| Maps with hospital locations (Mapbox) | ⏳ Planned |
+| Deploy to Vercel | ⏳ Ready |
 
 ---
 
-## 🔗 Resources
+## Documentation
 
-- Supabase Project: `https://app.supabase.com/project/[your-project-id]`
-- GitHub Repository: <https://github.com/1LifeLink1/LifeLink>
-- React Documentation: <https://react.dev>
-- Supabase Documentation: <https://supabase.com/docs>
+| Document | Purpose |
+|----------|---------|
+| [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md) | Step-by-step Supabase configuration |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues and fixes |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Developer workflow and guidelines |
 
 ---
 
-> Built with security-first approach. Row-Level Security policies ensure proper data isolation. For production, add rate-limiting on the Edge and implement additional audit logging.
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow, coding guidelines, and how to document changes.
+
+---
+
+## Resources
+
+- [Supabase Documentation](https://supabase.com/docs)
+- [React Documentation](https://react.dev)
+- [Lucide Icons](https://lucide.dev)
+- [GitHub Repository](https://github.com/1LifeLink1/LifeLink)
+
+---
+
+<p align="center">
+  <sub>Built with a security-first approach. Row-Level Security policies ensure proper data isolation.<br/>For production, add rate-limiting and audit logging.</sub>
+</p>

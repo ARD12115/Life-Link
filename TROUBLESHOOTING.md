@@ -1,389 +1,243 @@
-# 🚀 LifeLink Fresh Supabase Integration - Troubleshooting & Quick Start
+# Troubleshooting
 
-## What Has Been Done:
-
-✅ Enhanced hooks with logging and error handling
-✅ Added debug utility (supabaseDebug.js)
-✅ Created Setup Guide (SUPABASE_SETUP_GUIDE.md)
-✅ Added Debug Dashboard component (visible in bottom-right corner)
-✅ Fixed DELETE bug in useDonors.js
-✅ Disabled magic link, switched to email/password authentication
-✅ Fixed RLS infinite recursion by simplifying policies
-✅ Added Switch Role button in dashboards
-✅ Configured MCP server
-✅ Installed agent skills
-✅ Set up database connection with postgres package
-✅ Updated environment variables with actual project details
+Common issues and fixes for the LifeLink application.
 
 ---
 
-## 🔥 QUICK START - Do This NOW:
+## Quick Diagnostics
 
-### 1. Install & Start
+Open the browser console (F12 → Console tab) and look for these indicators:
+
+| Console output | Meaning |
+|----------------|---------|
+| `✅ Requests loaded: X` | Supabase connection working, data fetched |
+| `📡 Realtime subscription status: SUBSCRIBED` | Real-time sync active |
+| `❌ ...` | Something failed — read the error message |
+
+If you see no console output at all, the app likely failed to start or the Supabase client is misconfigured.
+
+---
+
+## Connection Issues
+
+### "Failed to fetch" or CORS error
+
+**Cause:** Supabase URL or API key is invalid or missing.
+
+**Fix:**
+
+1. Open `.env` and verify:
+
+   ```dotenv
+   REACT_APP_SUPABASE_URL=https://<project-id>.supabase.co
+   REACT_APP_SUPABASE_PUBLISHABLE_KEY=<anon-key>
+   ```
+
+2. Get fresh keys from **Supabase Dashboard → Settings → API**
+3. Restart the dev server (`Ctrl+C` then `npm start`) — env changes require a restart
+
+### "Table does not exist" error
+
+**Cause:** Database schema has not been applied.
+
+**Fix:**
+
+1. Go to **Supabase Dashboard → SQL Editor → New Query**
+2. Paste the entire contents of `supabase_schema.sql`
+3. Click **Run**
+4. Reload the app
+
+### No data showing (Donors: 0, Hospitals: 0)
+
+**Cause:** Tables exist but contain no records.
+
+**Fix:** Insert test data via the SQL Editor. See [SUPABASE_SETUP_GUIDE.md → Seed Test Data](SUPABASE_SETUP_GUIDE.md#7-seed-test-data-optional).
+
+---
+
+## Authentication Issues
+
+### Sign-in button does nothing
+
+**Cause:** Usually a Supabase client misconfiguration.
+
+**Fix:**
+
+1. Check browser console for auth error messages
+2. Verify `.env` has the correct Supabase URL and key
+3. Ensure the Supabase project is active (not paused)
+
+### "Email not confirmed" error
+
+**Cause:** Email confirmation is enabled and the user hasn't clicked the confirmation link.
+
+**Fix:**
+
+1. Check your email inbox (including spam) for the Supabase confirmation email
+2. Click the confirmation link
+3. Then sign in again
+
+**For local testing:** Disable email confirmation in **Supabase Dashboard → Authentication → Providers → Email → Confirm email → OFF**.
+
+### Confirmation email not received
+
+**Fix:**
+
+1. Check spam/junk folders
+2. Wait 2 minutes (emails can be slow)
+3. Try a different email address
+4. Verify **Email Auth** is enabled in Supabase Authentication settings
+
+### Stuck on wrong role after logout
+
+**Cause:** Your Supabase user still has a saved profile with the previous role.
+
+**Fix:** This is expected behavior. The app persists role selection in the `profiles` table. If you need to test the other role, create a second account with a different email, or delete the profile row manually in the Supabase table editor.
+
+---
+
+## Real-time Issues
+
+### Real-time not updating
+
+**Cause:** Realtime is not enabled on the relevant tables.
+
+**Fix:**
+
+1. Go to **Supabase Dashboard → Database → Tables**
+2. Click `blood_requests` → toggle **Realtime** to **ON** (top-right)
+3. Repeat for `donor_responses`, `donors`, and `hospitals`
+4. Wait 30 seconds, then reload the app
+
+### Updates appear in console but not on screen
+
+**Cause:** Component rendering issue, possibly stale cache.
+
+**Fix:**
+
 ```bash
+# Stop the dev server (Ctrl+C), then:
+rm -r node_modules build
+npm install
+npm start
+
+# In browser: Ctrl+Shift+Delete to clear cache
+```
+
+---
+
+## Build Issues
+
+### App won't start / "Cannot find module" errors
+
+**Fix:**
+
+```bash
+rm -r node_modules package-lock.json
 npm install
 npm start
 ```
 
-### 2. Check Browser DevTools
-- Press **F12** to open DevTools
-- Go to **Console** tab
-- Look for ✅ or ❌ messages
+### Source map warnings
 
-### 3. Click "RUN DIAGNOSTIC" Button
-- A green debug panel appears in bottom-right
-- Click the button and watch the console output
-- Should show:
-  - ✅ Connection: OK
-  - ✅ Donors: X
-  - ✅ Hospitals: Y
-  - ✅ Requests: Z
-
----
-
-## 🔴 If Data is NOT Showing:
-
-### Step 1: Check Supabase Project
-1. Go to https://supabase.com/dashboard
-2. Open your project (ID: [YOUR-PROJECT-ID])
-3. Click **SQL Editor**
-4. Run this query:
-```sql
-SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
-```
-- If it returns empty, **tables don't exist** → Go to Step 2
-- If it shows tables, **schema exists** → Go to Step 3
-
-### Step 2: Create Tables (If Missing)
-1. Go to **SQL Editor** → **New Query**
-2. Copy-paste entire `supabase_schema.sql` file from the project
-3. Click **Run**
-4. Check for success messages
-
-### Step 3: Check RLS Policies
-1. Go to **Authentication** → **Policies**
-2. Click on each table and verify policies are set
-3. Should see green checkmarks (✅)
-
-### Step 4: Enable Realtime
-1. Go to **Database** → **Tables**
-2. Click on `blood_requests` table
-3. Look for **Realtime** section at the top
-4. Toggle it **ON** (should show green)
-5. Repeat for `donor_responses` table
-
-### Step 5: Add Seed Data
-1. Go to **SQL Editor** → **New Query**
-2. Run this:
-
-```sql
--- Get a hospital ID first
-SELECT id FROM hospitals LIMIT 1;
--- Copy that ID and use it below:
-
-INSERT INTO donors (user_id, name, blood_group, city, phone, available)
-VALUES 
-  (NULL, 'Rahul Kumar', 'B+', 'Mumbai', '9988776655', true),
-  (NULL, 'Priya Singh', 'O-', 'Bangalore', '9876543221', true),
-  (NULL, 'Amit Patel', 'AB+', 'Delhi', '9765432123', true);
-
-INSERT INTO hospitals (user_id, name, city, contact_person, phone)
-VALUES 
-  (NULL, 'City General Hospital', 'Mumbai', 'Dr. Sharma', '9876543210'),
-  (NULL, 'Apollo Medical Center', 'Bangalore', 'Dr. Verma', '9876543211');
-
--- Check if data inserted
-SELECT * FROM donors;
-SELECT * FROM hospitals;
+```text
+Failed to parse source map from '@supabase/functions-js/src/...'
 ```
 
-### Step 6: Reload App & Check
-1. Go back to http://localhost:3000
-2. Press **Ctrl+Shift+Delete** in browser to clear cache
-3. Refresh page
-4. Click **RUN DIAGNOSTIC** button in bottom-right corner
-5. Should now show Donors, Hospitals, and Requests counts
+**Verdict:** ✅ Safe to ignore. The Supabase `functions-js` package references TypeScript source files that aren't bundled. The compiled JavaScript works correctly.
 
----
+### Webpack deprecation warnings
 
-## 🔁 Role Switching and Same-Browser Testing
-If you log in with the same email and get redirected to the Hospital side, this is likely because your current user profile is still stored in Supabase.
-
-### How role switching works
-- The app stores the chosen role in the `profiles` table for your authenticated user.
-- If you log in again with the same email, the app loads that existing profile.
-- To switch from Hospital to Donor (or vice versa):
-  1. Click the **Switch Role** button in the dashboard header
-  2. Confirm the prompt
-  3. The app deletes your current `profiles`, `donors`, and `hospitals` records for that user
-  4. The page reloads and returns to the role selector
-
-### Problem: Switch Role Button Not Visible
-**Symptoms:** No "Switch Role" button in the dashboard header.
-
-**Solution:**
-- Ensure you're logged in and on a dashboard page
-- The button is located in the header next to "New Request"
-- If still not visible, check browser console for JavaScript errors
-- May indicate database connection issues or RLS policy problems
-
----
-
-## 🔐 Authentication Changes
-
-### Important: Magic Link Disabled
-The app has been updated to use email/password authentication instead of magic links.
-
-**To sign in:**
-1. Enter your email and password
-2. Click "Sign In"
-3. If you don't have an account, click "Sign Up" first
-
-**For new accounts:**
-1. Click "Sign Up"
-2. Enter email and password (min 6 characters)
-3. Check your email for confirmation link
-4. Click the link to activate your account
-5. Then sign in with email/password
-
-### Common issue: stuck on Hospital after logout
-- This is not a browser cache bug.
-- It means your Supabase user still has a saved role profile.
-- Use the **Switch Role** button to clear the old profile and choose the other role.
-
-### If the button does not work
-1. Open DevTools Console
-2. Check for errors from Supabase requests
-3. Confirm the backend database still has your email in `profiles`
-4. If needed, delete the `profiles` row manually in Supabase and reload the app
-
----
-
-## 📋 Build Warnings (Safe to Ignore)
-
-### Source Map Warnings
-```
-Failed to parse source map from '@supabase/functions-js/src/FunctionsClient.ts'
-```
-
-**Analysis:** ✅ **NOT a bug**
-- Supabase's `functions-js` package includes source maps but the TypeScript source files aren't bundled
-- The compiled JavaScript works perfectly fine
-- This is a known Supabase package issue, not your code
-- **Action:** None needed. These warnings don't affect functionality.
-
-### Webpack Deprecation Warnings
-```
+```text
 [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning
 ```
 
-**Analysis:** ✅ **Safe**
-- React Scripts uses deprecated middleware options
-- Will be fixed when React Scripts updates Webpack
-- **Action:** None needed. Your app compiles successfully.
+**Verdict:** ✅ Safe to ignore. React Scripts uses older Webpack middleware options. This will be fixed in a future React Scripts update. The app compiles and runs normally.
 
 ---
 
-## 🐛 Code Quality Analysis
+## RLS Policy Issues
 
-### ✅ App.jsx
-- Proper auth state management
-- Correct RLS error handling (PGRST116 = "not found", expected when user has no profile)
-- Safe cleanup of subscriptions
-- **Status:** Clean
+### "Policy already exists" error
 
-### ✅ RoleSelector.jsx
-- Proper form validation
-- Error display to user
-- Loads during submission
-- **Status:** Clean
+**Verdict:** This should not happen because the schema uses `DO` blocks with exception handling. If it does occur, the policy is already applied — just reload the app.
 
-### ✅ Auth.jsx
-- Email/password authentication implementation correct
-- Email validation built-in via `type="email"`
-- Proper error handling
-- **Status:** Clean
+### Infinite recursion in RLS policies
 
-### ✅ useDonors.js & useRequests.js
-- Uses `isMounted` ref to prevent state updates after unmount ✅
-- Proper realtime subscriptions with channel cleanup ✅
-- Error handling in try-catch blocks ✅
-- Request throttling to prevent network storms ✅
-- **Status:** Clean
+**Background:** This was a known issue with earlier policy definitions that cross-referenced the `profiles` table from `donors`/`hospitals` policies. The current schema uses simplified policies that avoid cross-table lookups.
 
-### ✅ supabase.js
-- Correctly reads environment variables
-- Simple, no side effects
-- **Status:** Clean
+**Fix:** Re-apply the current `supabase_schema.sql` which uses the corrected policies.
 
 ---
 
-## 🎯 Next Steps
+## UI Issues
 
-Your app is ready to test! Go to `http://localhost:3000` and:
+### Theme not applying correctly
 
-1. **Login:** Enter email and password to sign in or sign up
-2. **Check Email:** (If signing up) Find the confirmation link and click it
-3. **Select Role:** Choose Hospital or Donor
-4. **See Dashboard:** Your appropriate dashboard should render
-5. **Test Realtime:** Open two browsers side-by-side and make changes — see updates in real-time
+**Fix:**
 
----
+1. Check that `ThemeContext.js` is wrapping the app (it's imported in `index.js`)
+2. Try clicking the theme buttons in the top navigation bar (sun / moon / monitor icons)
+3. Clear localStorage: open Console (F12) and run `localStorage.clear()`, then reload
 
-## 🔧 Common Issues & Fixes
+### Page shows blank white screen
 
-### ❌ "Cannot GET /api/v1/..." in Network tab
-**Problem**: Supabase API not responding
-**Fix**:
-```bash
-# Verify .env
-cat .env
+**Cause:** Usually a JavaScript error preventing React from rendering.
 
-# Should show valid URL like: https://xxxxx.supabase.co
-# Should show valid key like: sb_publishable_xxxxx
+**Fix:**
 
-# If empty, fill manually from Supabase Dashboard
-```
-
-### ❌ "Failed to fetch" / "CORS error"
-**Problem**: Supabase key or URL is invalid
-**Fix**:
-1. Get fresh keys from Supabase Dashboard
-2. Go to **Settings** → **API**
-3. Copy **Project URL** and **Anon Key**
-4. Update `.env`:
-```dotenv
-REACT_APP_SUPABASE_URL=https://xxxxx.supabase.co
-REACT_APP_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
-```
-5. Delete node_modules: `rm -r node_modules`
-6. Reinstall: `npm install`
-7. Restart: `npm start`
-
-### ❌ Real-time not updating
-**Problem**: Realtime not enabled on tables
-**Fix**:
-1. In Supabase, go to **Database** → **Tables**
-2. Click `blood_requests` → Check top-right for **Realtime: ON**
-3. Click `donor_responses` → Check top-right for **Realtime: ON**
-4. If OFF, toggle them ON
-
-### ❌ "Table does not exist" error in console
-**Problem**: SQL schema wasn't applied
-**Fix**: Follow "Step 2: Create Tables" above
-
-### ❌ Data shows in console but not on page
-**Problem**: Component rendering issue
-**Fix**:
-```bash
-# Clear everything and restart
-rm -r node_modules build .next
-npm install
-npm start
-
-# In browser, press Ctrl+Shift+Delete while app loads
-```
+1. Open Console (F12) and check for red error messages
+2. Common causes: missing environment variables, network error to Supabase, or a component crash
+3. Try the full reset below
 
 ---
 
-## 📊 What You Should See After Setup:
+## Full Reset
 
-### Hospital View:
-- ✅ Hospital name in header
-- ✅ Stats cards showing "Open Requests: 0", "In Progress: 0", etc.
-- ✅ "New Request" button active
-- ✅ Empty state message if no requests
-
-### Donor View:
-- ✅ Donor name in header with blood group
-- ✅ Profile card with toggle switch
-- ✅ "0 alerts" or alert count
-- ✅ Empty state if no matching requests
-
----
-
-## 🧪 Test Full Flow:
-
-1. **Create Profile** (if needed):
-   - Switch to Hospital view → Fill registration form
-   - Switch to Donor view → Fill registration form
-
-2. **Create Request**:
-   - Click "New Request" button
-   - Select blood group: B+
-   - Set urgency: Urgent
-   - Click "Post & Alert Donors"
-
-3. **Check Donor Alert**:
-   - Switch to Donor view
-   - Should see alert card appear instantly
-   - Click "I Can Donate"
-
-4. **Check Hospital Update**:
-   - Switch back to Hospital view
-   - Request status should change to "In progress"
-   - Should see donor name in expanded view
-
-5. **Monitor Realtime**:
-   - Open two browser tabs side-by-side
-   - Keep DevTools open
-   - Watch console for 🔄 change notifications
-   - Confirm instant updates (no refresh needed)
-
----
-
-## 📈 Debug Panel Guide
-
-The green debug panel in bottom-right has a button that runs:
-
-```
-Connection Check → Table Count → Realtime Setup
-```
-
-**Green✅ means**: ✅ Connected, data exists, listening for updates
-**Red❌ means**: ❌ Connection failed, tables empty, or policy blocked
-
----
-
-## 🆘 Still Not Working?
-
-1. Check browser console (F12) for red error messages
-2. Check Supabase dashboard for any alerts
-3. Verify all steps in "If Data is NOT Showing" section
-4. Try "Quick Reset" below
-5. Post full console error to troubleshoot
-
----
-
-## 🔄 Quick Reset (Start Over)
+If nothing else works, start completely fresh:
 
 ```bash
-# 1. Clear local environment
-rm -r node_modules package-lock.json build .next
-rm .env
+# 1. Stop the dev server (Ctrl+C)
 
-# 2. Create fresh .env from example
+# 2. Clear everything
+rm -r node_modules package-lock.json build
+
+# 3. Reset environment
 cp .env.example .env
+# Fill in your Supabase URL and anon key
 
-# 3. Fill .env with your actual keys
-# Go to Supabase Dashboard → Settings → API
-# Copy Project URL and Anon Key
-
-# 4. Reinstall and start fresh
+# 4. Reinstall and start
 npm install
 npm start
 
-# 5. In browser, while app loads:
-# Press Ctrl+Shift+Delete to clear cache
+# 5. In browser: Ctrl+Shift+Delete to clear cache
 ```
+
+If the database is also in a bad state, see the [Quick Reset section in SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md#quick-reset).
 
 ---
 
-## 📝 Next Steps
+## Code Quality Notes
 
-Once Supabase is working:
-- ✅ Test creating/reading data
-- ✅ Test real-time updates
-- ✅ Implement authentication properly
-- ✅ Add SMS notifications
-- ✅ Deploy to Vercel
+All core files have been reviewed and verified clean:
+
+| File | Status | Notes |
+|------|--------|-------|
+| `App.jsx` | ✅ Clean | Proper auth state management, subscription cleanup |
+| `Auth.jsx` | ✅ Clean | Email/password auth, `isMounted` guard, error handling |
+| `LandingPage.jsx` | ✅ Clean | Static presentation, no side effects |
+| `HospitalDashboard.jsx` | ✅ Clean | Request management, real-time sync |
+| `DonorDashboard.jsx` | ✅ Clean | Alert handling, response management |
+| `useDonors.js` | ✅ Clean | `isMounted` ref, channel cleanup, throttling |
+| `useRequests.js` | ✅ Clean | `isMounted` ref, channel cleanup, throttling |
+| `supabase.js` | ✅ Clean | Simple client init, no side effects |
+
+---
+
+## Still Stuck?
+
+1. Read the error message in the browser console carefully
+2. Search this document for keywords from the error
+3. Check [SUPABASE_SETUP_GUIDE.md](SUPABASE_SETUP_GUIDE.md) for configuration steps
+4. Check the [Supabase status page](https://status.supabase.com/) for outages
+5. Open an issue on [GitHub](https://github.com/1LifeLink1/LifeLink/issues)
