@@ -66,15 +66,22 @@ function NewRequestModal({ myHospital, onClose }) {
 
         // Trigger SMS Alerts for Urgent/Critical requests
         if (['Urgent', 'Critical'].includes(form.urgency)) {
-          console.log('📡 Triggering emergency SMS alerts...')
-          await supabase.functions.invoke('send-blood-alert', {
-            body: {
+          console.log('📡 Trigger the Edge Function (SMS/Push logic)')
+          const { data: funcData, error: funcError } = await supabase.functions.invoke('send-blood-alert', {
+            body: { 
               requestId: data.id,
               hospitalName: myHospital.name,
               bloodGroup: form.blood_group,
               urgency: form.urgency
             }
           })
+
+          if (funcError) {
+            console.warn('📡 Simulation Mode: Edge function trigger failed (likely due to missing Twilio keys).')
+            console.log(`💡 [MOCK ALERT] An emergency SMS would have been sent to matching ${form.blood_group} donors in ${myHospital.city}.`)
+          } else {
+            console.log('Emergency alerts sent successfully to matching donors!')
+          }
         }
       }
       onClose()

@@ -1,35 +1,53 @@
-# 🎯 Quick Reference — LifeLink
+# 🚀 LifeLink Quick Reference (Cheat Sheet)
 
-## 🟢 Status Indicators
-- **Console**: Look for `✅` and `📡 Realtime status: SUBSCRIBED`.
-- **Notifications**: Check for `✅ Service Worker registered` in the console.
-- **Maps**: Markers should pulse red during active emergency requests.
-- **Theme**: Sun/Moon/Monitor icons in top-nav should switch modes instantly.
+The fastest way to navigate and manage the LifeLink project.
 
-## 🚀 Common Commands
-- `npm start`: Launch development server.
-- `npm run build`: Create production bundle.
-- `localStorage.clear()`: Run in console if theme or session gets stuck.
+---
 
-## 📁 Core File Map
-| File | Role |
-|------|------|
-| `App.jsx` | Router, top-nav, and auth state. |
-| `LandingPage.jsx` | Portal entry point and "How it works". |
-| `HospitalDashboard.jsx` | Hospital staff request management. |
-| `DonorDashboard.jsx` | Donor alert and response view. |
-| `VisualEnvironment.jsx` | Global 3D background effect. |
-| `index.css` | Design system and theme tokens. |
+## 📂 Navigation
+| Path | Content |
+| :--- | :--- |
+| **`hospital_web/src`** | Hospital portal source code. |
+| **`donor_app/`** | Native mobile app source code. |
+| **`hospital_web/src/hooks`** | Core real-time & auth logic. |
+| **`hospital_web/src/lib`** | Supabase client initialization. |
 
-## 🔗 Supabase Links
-- **Settings**: `https://app.supabase.com/project/[id]/settings/api`
-- **Tables**: `https://app.supabase.com/project/[id]/editor`
-- **Auth**: `https://app.supabase.com/project/[id]/auth/users`
+---
 
-## 🔴 Trouble Signs
-| Message | Fix |
-|---------|-----|
-| `Failed to fetch` | Check `.env` keys and internet. |
-| `Table not found` | Run `supabase_schema.sql` in SQL Editor. |
-| `No real-time` | Enable "Realtime" toggle on tables in Supabase. |
-| `Blank screen` | Check console for JS crashes. |
+## ⌨️ Command Shortcuts
+### Hospital Web
+- `cd hospital_web`
+- `npm start`: Start dev server.
+- `npm run build`: Production bundle.
+
+### Donor App
+- `cd donor_app`
+- `npx expo start`: Start mobile dev server.
+
+---
+
+## 🔗 Documentation Links
+- **[Full Walkthrough](./FEATURES_WALKTHROUGH.md)**: How to test features.
+- **[Security Report](./SECURITY_PENTEST_REPORT.md)**: Security & Privacy audit.
+- **[Mobile Plan](./MOBILE_STRATEGY_PLAN.md)**: The roadmap for the app.
+- **[Troubleshooting](./TROUBLESHOOTING.md)**: Common fixes.
+
+---
+
+## 🔑 Key Environment Variables
+> [!NOTE]
+> All keys should be placed in `hospital_web/.env` and eventually `donor_app/.env`.
+
+| Variable | Source |
+| :--- | :--- |
+| `REACT_APP_SUPABASE_URL` | Supabase Dashboard |
+| `REACT_APP_SUPABASE_ANON_KEY` | Supabase Dashboard |
+| `REACT_APP_VAPID_PUBLIC_KEY` | `npx web-push generate-vapid-keys` |
+
+---
+
+## 🛡️ Database Verification
+Run this SQL query to verify your hospital role:
+```sql
+SELECT role FROM profiles WHERE user_id = 'your-id';
+```

@@ -1,41 +1,39 @@
-# Developer Guidelines
+# 🧠 LifeLink Developer Skill Guidelines
 
-Guidelines for developing and maintaining the LifeLink codebase.
+Best practices for contributing to the LifeLink monorepo.
 
-## Recent Architectural Updates (May 2026)
-- **Landing Page & Routing**: Implemented `LandingPage.jsx` and `react-router-dom` for distinct `/hospital` and `/donor` paths.
-- **Top Navigation Bar**: Replaced floating nav with a premium top-nav bar featuring theme controls and sign-out.
-- **Theme System**: Added `ThemeContext` supporting Light, Dark, and System modes with smooth CSS transitions.
-- **Visual Overhaul**: Integrated `VisualEnvironment.jsx` for 3D parallax background effects.
-- **Auth Hardening**: Standardized on Email/Password authentication; Magic Links disabled for hospital security.
-- **Background Alerts**: Added Web Push (Service Worker) and Twilio (SMS) for multi-channel emergency notifications.
-- **Geospatial Features**: Integrated Mapbox and automatic Geolocation capture for real-time network visualization.
+---
 
-## Purpose
-- Track code changes and integration fixes immediately.
-- Maintain consistent styling using the global design system in `index.css`.
-- Ensure all real-time subscriptions are cleaned up on unmount using `isMounted` refs.
+## 🎨 Design System
+- **Web**: Use the variables in `index.css`. Stick to **Glassmorphism** (backdrops, blur, subtle borders).
+- **Mobile**: Mirror the web aesthetic using native styling. Focus on high-contrast readability for emergency situations.
 
-## Documentation Workflow
-Update the following docs whenever code changes:
-- `README.md`: Overview and architecture.
-- `CONTRIBUTING.md`: Detailed developer conventions.
-- `SUPABASE_SETUP_GUIDE.md`: Schema or auth changes.
-- `TROUBLESHOOTING.md`: New known issues or fixes.
-- `Prompt.md`: AI context updates.
+---
 
-## Console Patterns
-Use the established emoji prefixes for logs:
-- ✅ Success
-- ❌ Error
-- 📡 Network
-- 🔄 Real-time
-- 👥 Donor
-- 🏥 Hospital
+## ⚡ Real-time Patterns
+> [!IMPORTANT]
+> Never do a full page re-fetch for real-time updates.
+1. Use the `supabase.channel().on('postgres_changes', ...)` pattern.
+2. Patch local state (e.g., `setRequests(prev => [...prev, newRequest])`) for instant UI updates.
+3. Handle **Edge Cases**: Ensure subscriptions are cleaned up in `useEffect` returns to prevent memory leaks.
 
-## Launch Checklist
-- [ ] App compiles without errors.
-- [ ] Real-time sync works in two side-by-side tabs.
-- [ ] Theme transitions are smooth across all components.
-- [ ] Auth flow (sign up/sign in) verified.
-- [ ] `npm run build` succeeds.
+---
+
+## 🛡️ Security First
+- **RLS Awareness**: Always assume the user can call the Supabase SDK directly. Never rely on frontend-only validation.
+- **Data Minimization**: Only query the columns you actually need.
+- **Privacy**: Use the `processedDonors` pattern in maps to anonymize locations before rendering.
+
+---
+
+## 📱 Mobile-Specific Rules (Donor App)
+- **Offline First**: Use `AsyncStorage` or `SecureStore` to ensure the app works during network drops.
+- **Battery Life**: Minimize background geolocation updates. Only track when the donor is "Available."
+- **Touch Targets**: All interactive elements must be at least **44x44 points** for easy tapping during stressful emergencies.
+
+---
+
+## 🔄 Git Workflow
+1. **Branching**: `feature/mobile-auth`, `bugfix/map-rendering`.
+2. **Commits**: Clear, concise messages (e.g., `feat: added native biometric login`).
+3. **Pull Requests**: Include a screenshot or recording of UI changes.

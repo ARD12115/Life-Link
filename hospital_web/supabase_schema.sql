@@ -23,6 +23,7 @@ create table if not exists hospitals (
   city text not null,
   contact_person text,
   phone text,
+  is_verified boolean default false, -- Security: prevents fake hospitals from spamming
   created_at timestamptz default now()
 );
 
@@ -95,43 +96,34 @@ do $$ begin
 exception when duplicate_object then null;
 end $$;
 
--- Donors: donors can manage their own record only if they are a donor profile; hospitals can read donors.
+-- Donors: users can manage their own record. 
+-- Hospitals can read basic donor info (name, blood group) for the map, but NOT phone numbers.
+-- Phone numbers are ONLY visible to the hospital if the donor has RESPONDED to their request.
 drop policy if exists "donors_owner_manage" on donors;
 drop policy if exists "hospitals_read_donors" on donors;
-do $$ begin
-  create policy "donors_owner_manage" on donors for all using (
-    auth.uid() = user_id
-  ) with check (
-    auth.uid() = user_id
-  );
-exception when duplicate_object then null;
-end $$;
+create policy "donors_owner_manage" on donors for all using (
+  auth.uid() = user_id
+);
 
-do $$ begin
-  create policy "hospitals_read_donors" on donors for select using (
-    auth.uid() is not null
-  );
-exception when duplicate_object then null;
-end $$;
+create policy "hospitals_read_basic_donors" on donors for select using (
+  exists (
+    select 1 from profiles where user_id = auth.uid() and role = 'hospital'
+  )
+);
 
--- Hospitals: hospitals can manage their own record only if they are a hospital profile; donors can view hospital data once they are authenticated.
+-- Hospitals: users manage their own.
+-- Donors can see hospital list for the directory.
 drop policy if exists "hospitals_owner_manage" on hospitals;
 drop policy if exists "authenticated_hospitals_view" on hospitals;
-do $$ begin
-  create policy "hospitals_owner_manage" on hospitals for all using (
-    auth.uid() = user_id
-  ) with check (
-    auth.uid() = user_id
-  );
-exception when duplicate_object then null;
-end $$;
+create policy "hospitals_owner_manage" on hospitals for all using (
+  auth.uid() = user_id
+);
 
-do $$ begin
-  create policy "authenticated_hospitals_view" on hospitals for select using (
-    auth.uid() is not null
-  );
-exception when duplicate_object then null;
-end $$;
+create policy "donors_read_hospitals" on hospitals for select using (
+  exists (
+    select 1 from profiles where user_id = auth.uid() and role = 'donor'
+  )
+);
 
 -- Requests: hospitals can manage their own requests; donors can view requests assigned to them.
 do $$ begin

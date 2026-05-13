@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRequests } from '../hooks/useRequests'
-import { useHospitals } from '../hooks/useDonors'
+import { useDonors, useHospitals } from '../hooks/useDonors'
 import { Heart, MapPin, CheckCircle, Bell, Phone, Activity, ShieldCheck, Droplets, Hospital, Navigation } from 'lucide-react'
 import EmergencyMap from './EmergencyMap'
 import { useNotifications } from '../hooks/useNotifications'
@@ -173,11 +173,32 @@ export default function DonorDashboard({ user }) {
           </div>
         </div>
         <div className="flex-center" style={{ gap: '12px' }}>
-          {permission !== 'granted' && (
-            <button onClick={subscribe} className="btn-ghost" style={{ padding: '8px 16px', fontSize: '13px' }}>
-              <Bell size={14} /> Enable Notifications
-            </button>
-          )}
+          <button 
+            onClick={subscribe} 
+            className={`btn-${permission === 'granted' ? 'solid' : 'ghost'}`} 
+            style={{ padding: '10px 20px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <Bell size={14} /> 
+            {permission === 'granted' ? 'Alerts Active' : 'Enable Alerts'}
+          </button>
+          
+          <button 
+            onClick={() => {
+              if (window.Registration) {
+                window.Registration.showNotification('LifeLink Simulation', {
+                  body: 'THIS IS A TEST: Emergency B+ request nearby.',
+                  icon: '/logo192.png',
+                  tag: 'test-push'
+                });
+              } else {
+                alert('Click "Enable Alerts" first!');
+              }
+            }}
+            className="btn-ghost" 
+            style={{ padding: '10px 20px', fontSize: '13px', opacity: 0.7 }}
+          >
+            Send Test Push
+          </button>
           {pendingAlerts > 0 && (
             <div className="badge badge-high" style={{ padding: '12px 24px', borderRadius: '32px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Bell size={14} /> {pendingAlerts} Urgent Requests
