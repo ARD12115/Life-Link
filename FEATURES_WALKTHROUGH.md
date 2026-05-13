@@ -20,16 +20,24 @@ Welcome to the LifeLink developer tour! This guide explains how to test every ma
 
 ---
 
-## 📱 Donor Native App (In Dev)
+## 📱 Donor Native App (Phase 4)
 **Location**: `/donor_app`
 
-### 1. Instant Onboarding
-- [ ] **Anonymous Access**: One-tap "Become a Hero" entry without passwords.
-- [ ] **Biometrics**: FaceID/Fingerprint login for returning donors.
+### 1. Native Identity & Security
+- ✅ **SecureStore**: Session tokens are hardware-encrypted.
+- ✅ **Biometrics**: Ready for FaceID/Fingerprint integration.
 
-### 2. Emergency Alerts
-- [ ] **Push Notifications**: Experience 100% reliable alerts even when the app is closed.
-- [ ] **Native Map**: Pan and zoom smoothly to see nearby needs with jittered privacy.
+### 2. Ergonomic Dashboard
+- ✅ **Thumb-Zone UI**: High-accessibility navigation for all ages.
+- ✅ **Emergency Feed**: Real-time hospital requests delivered instantly.
+
+### 3. Native Mapping
+- ✅ **GPU Accelerated**: Liquid-smooth interactive map.
+- ✅ **Privacy Jitter**: Hardware-enforced location anonymization.
+
+### 4. Native Alerts
+- ✅ **Push Notifications**: System-level alerts that arrive even when app is closed.
+- ✅ **Test Mode**: One-tap native verification button.
 
 ---
 

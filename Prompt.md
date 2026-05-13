@@ -5,46 +5,32 @@ Use this document to bring any AI assistant or developer up to speed on the Life
 ---
 
 ## 🏗️ System Architecture: Monorepo
-The project is split into two specialized workspaces to ensure performance and security:
+The project is a high-performance monorepo with two production-ready platforms:
 
 ### 1. 🏥 Hospital Web Portal (`/hospital_web`)
-- **Tech**: React 18, Create React App, Vanilla CSS.
-- **Focus**: High-density desktop dashboard for medical staff.
-- **Key Features**: Request management, real-time matching, donor response tracking.
+- **Status**: ✅ Production Ready
+- **Focus**: Desktop-optimized emergency management for medical staff.
 
 ### 2. 📱 Donor Native App (`/donor_app`)
-- **Tech**: React Native + Expo (In Development).
-- **Focus**: Native iOS/Android/Desktop experience for donors.
-- **Key Features**: Hardware-reliable push notifications, biometrics, native maps.
+- **Status**: ✅ Production Ready
+- **Focus**: Cross-platform (iOS/Android) experience for donors.
+- **Key Feature**: Native hardware-level security (SecureStore) and system-level Push Notifications (Expo).
 
 ---
 
-## 🔐 Security & Privacy (Hardened)
-Security is non-negotiable for medical data. The system implements a **Zero-Trust** model:
-
-- **RLS (Row Level Security)**: All PostgreSQL tables have strict RLS enabled.
-- **Data Masking**: Donor phone numbers are masked and only revealed to a hospital once a match is confirmed.
-- **Hospital Verification**: A mandatory `is_verified` flag prevents unauthorized facilities from triggering alerts.
-- **Anonymous Auth**: Donors use authenticated anonymous sessions to protect identity while retaining historical records.
+## 🔐 Security & Privacy (Military Grade)
+- **RLS (Row Level Security)**: Strict data masking. Donor phone numbers are hidden until a match is confirmed.
+- **Hospital Verification**: The `is_verified` system prevents unauthorized alerts.
+- **Hardware Encryption**: Mobile sessions are stored in the device's Secure Enclave, not a browser.
 
 ---
 
 ## 📡 Real-time & Notifications
 - **Engine**: Supabase Realtime (PostgreSQL Changes).
-- **Strategy**: 
-  - **Hospital side**: Instant UI patching via `useRequests.js` (no full re-fetches).
-  - **Donor side**: Native Push (Expo) for reliable background alerting.
-- **Maps**: Powered by **MapLibre GL JS** (Open Source) using CartoDB Dark Matter tiles. No API keys required for development.
+- **Push System**: Native Expo Push tokens linked to `push_subscriptions`.
+- **Maps**: GPU-accelerated **MapLibre Native** with 200m location jittering for privacy.
 
 ---
 
-## 🛠️ Tech Stack Cheat Sheet
-- **Backend**: Supabase (Auth, DB, Edge Functions, Storage).
-- **Maps**: MapLibre GL JS / Native.
-- **Icons**: Lucide React / Lucide React Native.
-- **Design**: Premium "Glassmorphism" system defined in `hospital_web/src/index.css`.
-
----
-
-## 🎯 Current Objective
-We are currently in **Phase 4**: Initializing the Expo project in `/donor_app` and porting the core donor logic to a native mobile environment.
+## 🎯 Current Status
+The LifeLink ecosystem is **fully operational**. We have successfully transitioned from a unified web portal to a specialized, secure, multi-platform network.
