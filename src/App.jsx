@@ -61,6 +61,16 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Explicitly handle anonymous sign-in for donors if no session exists
+  const handleDonorAccess = async () => {
+    if (!session) {
+      const { data, error } = await supabase.auth.signInAnonymously()
+      if (error) console.error("Anonymous auth failed:", error)
+      return data.session
+    }
+    return session
+  }
+
   if (loading) return null
 
   return (

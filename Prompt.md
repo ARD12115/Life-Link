@@ -11,14 +11,17 @@ Use this context to bring AI assistants up to speed on the LifeLink codebase.
 - **Routing**: React Router DOM (LandingPage, Hospital Portal, Donor Portal)
 - **Backend**: Supabase (Auth, PostgreSQL, Realtime)
 - **Styling**: Vanilla CSS with a global design system (`index.css`) and dark/light/system theme support
-- **Icons**: Lucide React
 - **Realtime**: Active subscriptions on `blood_requests` and `donor_responses`
+- **Notifications**: Dual-channel alerts via Twilio (SMS) and Web Push API (Service Worker)
+- **Maps**: Mapbox-powered visualization of donors and active hospital emergencies
 
 ### Core Architecture
 - **Landing Page**: entry point for both portals.
 - **Hospital Portal (`/hospital`)**: Auth-gated dashboard for creating requests and managing donor responses.
-- **Donor Portal (`/donor`)**: Open-access dashboard for viewing alerts and responding to requests.
-- **Authentication**: Standard Email/Password (Magic Links disabled).
+- **Real-time Engine**: Optimized hook `useRequests.js` that patches local state with Postgres payload for instant updates.
+- **Background Alerts**: Service Worker (`sw.js`) and Web Push API with VAPID key decoding.
+- **Geospatial Intelligence**: `EmergencyMap.jsx` with Mapbox integration, automatic geolocation capture, and anonymized donor density views.
+- **Centralized Auth**: `App.jsx` handles anonymous donor sessions to prevent race conditions.
 - **Security**: Row-Level Security (RLS) enabled on all tables, enforcing role-based access.
 
 ### Database Schema
@@ -29,10 +32,13 @@ Use this context to bring AI assistants up to speed on the LifeLink codebase.
 - `donor_responses`: Request ID, Donor ID, and status (`alerted`, `confirmed`, etc.).
 
 ### Frontend Structure
-- `App.jsx`: Main router and top-nav layout.
+- `App.jsx`: Main router, centralized auth, and top-nav layout.
+- `public/sw.js`: Service Worker for background push notifications.
+- `components/EmergencyMap.jsx`: Real-time Mapbox visualization with anonymized donor jitter.
 - `components/VisualEnvironment.jsx`: Parallax background with 3D effects.
 - `context/ThemeContext.js`: Global theme management.
-- `hooks/useRequests.js`: Real-time blood request synchronization.
+- `hooks/useNotifications.js`: Web Push permission and VAPID subscription logic.
+- `hooks/useRequests.js`: Optimized real-time blood request synchronization (state patching).
 - `hooks/useDonors.js`: Real-time donor and hospital data fetching.
 
 ### Development Utilities

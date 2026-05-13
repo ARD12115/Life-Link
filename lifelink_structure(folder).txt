@@ -1,7 +1,8 @@
 LifeLink/
 ├── public/
 │   ├── index.html
-│   └── LOGO.png
+│   ├── LOGO.png
+│   └── sw.js
 ├── src/
 │   ├── components/
 │   │   ├── Auth.jsx
@@ -16,6 +17,7 @@ LifeLink/
 │   │   └── ThemeContext.js
 │   ├── hooks/
 │   │   ├── useDonors.js
+│   │   ├── useNotifications.js
 │   │   └── useRequests.js
 │   ├── lib/
 │   │   ├── bloodLogic.js

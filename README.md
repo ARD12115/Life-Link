@@ -24,10 +24,10 @@ LifeLink bridges the critical gap between hospital blood emergencies and volunte
 
 **Key capabilities:**
 
-- **Instant matching** — Supabase Realtime pushes alerts to donors the moment a request is posted
+- **Real-time matching** — Alerts delivered via Web Push and SMS the moment a request is posted
+- **Background Notifications** — Service Worker ensures donors see alerts even when the app is closed
 - **Smart compatibility** — Blood type matching goes beyond exact groups using medical compatibility rules
-- **Role-based access** — Hospitals manage requests; donors receive and respond to alerts
-- **Row-Level Security** — Every database query is enforced by PostgreSQL RLS policies
+- **Interactive Maps** — Real-time visualization of hospital needs and donor distribution
 - **Dark / Light / System themes** — Full theme support with smooth transitions
 
 ---
@@ -243,15 +243,13 @@ LifeLink uses medical blood type compatibility rules (not just exact matching):
 | Feature | Status |
 |---------|--------|
 | Email/password authentication | ✅ Done |
-| Role-based access (Hospital / Donor) | ✅ Done |
-| Real-time sync via Supabase Realtime | ✅ Done |
-| Blood compatibility matching | ✅ Done |
+| Real-time matching engine | ✅ Optimized |
+| SMS alerts (Twilio) | ✅ Done |
+| Push notifications (Web Push API) | ✅ Done |
+| Maps with anonymized density (Mapbox) | ✅ Done |
 | Dark / light / system themes | ✅ Done |
-| Landing page with portal selection | ✅ Done |
-| Router-based navigation | ✅ Done |
-| SMS alerts (Twilio) | ⏳ Planned |
-| Push notifications (Web Push API) | ⏳ Planned |
-| Maps with hospital locations (Mapbox) | ⏳ Planned |
+| Centralized Auth Flow | ✅ Fixed |
+| Responsive Layouts | ✅ Fixed |
 | Deploy to Vercel | ⏳ Ready |
 
 ---

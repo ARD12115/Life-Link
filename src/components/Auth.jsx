@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 import { Mail, ShieldCheck, Heart, Hospital, Lock } from 'lucide-react';
 
 const Auth = () => {
@@ -10,6 +11,7 @@ const Auth = () => {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const isMounted = useRef(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     isMounted.current = true;
@@ -40,6 +42,7 @@ const Auth = () => {
         password,
       });
       authError = signInError;
+      if (!authError) navigate('/hospital');
     }
 
     if (isMounted.current) {

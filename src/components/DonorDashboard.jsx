@@ -4,7 +4,9 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRequests } from '../hooks/useRequests'
 import { useHospitals } from '../hooks/useDonors'
-import { Heart, MapPin, CheckCircle, Bell, Phone, Activity, ShieldCheck, Droplets, Hospital } from 'lucide-react'
+import { Heart, MapPin, CheckCircle, Bell, Phone, Activity, ShieldCheck, Droplets, Hospital, Navigation } from 'lucide-react'
+import EmergencyMap from './EmergencyMap'
+import { useNotifications } from '../hooks/useNotifications'
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
 
@@ -78,19 +80,14 @@ export default function DonorDashboard({ user }) {
   const [profileLoading, setProfileLoading] = useState(true)
   const { requests, loading, refetch } = useRequests()
   const { hospitals } = useHospitals()
+  const { donors } = useDonors()
   const [activeTab, setActiveTab] = useState('alerts')
   const [selectedHospital, setSelectedHospital] = useState(null)
+  const { permission, subscribe } = useNotifications(user)
 
   useEffect(() => {
     async function loadDonorProfile() {
-      if (!user) {
-        const { error } = await supabase.auth.signInAnonymously()
-        if (error) {
-          console.error("Anonymous auth failed. Please enable Anonymous Sign-Ins in Supabase:", error)
-          setProfileLoading(false)
-        }
-        return // App.jsx will pass the new user once session updates
-      }
+      if (!user) return 
       const { data } = await supabase.from('donors').select('*').eq('user_id', user.id).single()
       if (data) setDonor(data)
       setProfileLoading(false)
@@ -122,7 +119,28 @@ export default function DonorDashboard({ user }) {
             e.preventDefault()
             const fd = new FormData(e.target)
             if (!user) return alert("Anonymous authentication failed. Please check console.")
-            const { data } = await supabase.from('donors').insert([{ user_id: user.id, name: fd.get('name'), blood_group: fd.get('blood_group'), city: fd.get('city'), phone: fd.get('phone') }]).select().single()
+
+            // Capture coordinates if available
+            let lat = null, lng = null;
+            try {
+              const pos = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+              });
+              lat = pos.coords.latitude;
+              lng = pos.coords.longitude;
+            } catch (err) {
+              console.warn("📡 Geolocation failed, proceeding with city only:", err);
+            }
+
+            const { data } = await supabase.from('donors').insert([{ 
+              user_id: user.id, 
+              name: fd.get('name'), 
+              blood_group: fd.get('blood_group'), 
+              city: fd.get('city'), 
+              phone: fd.get('phone'),
+              latitude: lat,
+              longitude: lng
+            }]).select().single()
             if (data) setDonor(data)
           }}>
           <h1 style={{ marginBottom: '12px', fontSize: '32px' }}>Donor Registration</h1>
@@ -155,6 +173,11 @@ export default function DonorDashboard({ user }) {
           </div>
         </div>
         <div className="flex-center" style={{ gap: '12px' }}>
+          {permission !== 'granted' && (
+            <button onClick={subscribe} className="btn-ghost" style={{ padding: '8px 16px', fontSize: '13px' }}>
+              <Bell size={14} /> Enable Notifications
+            </button>
+          )}
           {pendingAlerts > 0 && (
             <div className="badge badge-high" style={{ padding: '12px 24px', borderRadius: '32px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Bell size={14} /> {pendingAlerts} Urgent Requests
@@ -195,6 +218,9 @@ export default function DonorDashboard({ user }) {
         <button className={`tab-btn ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>
           <Bell size={18} /> Emergency Alerts
         </button>
+        <button className={`tab-btn ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')}>
+          <Navigation size={18} /> Emergency Map
+        </button>
         <button className={`tab-btn ${activeTab === 'directory' ? 'active' : ''}`} onClick={() => setActiveTab('directory')}>
           <Hospital size={18} /> Network Hospitals
         </button>
@@ -216,6 +242,16 @@ export default function DonorDashboard({ user }) {
               ))
             )}
           </div>
+        </section>
+      )}
+
+      {activeTab === 'map' && (
+        <section className="fade-in">
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '24px' }}>Real-time Emergency Map</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Locate urgent needs and see your contribution to the network.</p>
+          </div>
+          <EmergencyMap donors={donors} hospitals={hospitals} requests={requests} donorView={true} />
         </section>
       )}
 

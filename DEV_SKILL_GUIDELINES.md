@@ -8,6 +8,8 @@ Guidelines for developing and maintaining the LifeLink codebase.
 - **Theme System**: Added `ThemeContext` supporting Light, Dark, and System modes with smooth CSS transitions.
 - **Visual Overhaul**: Integrated `VisualEnvironment.jsx` for 3D parallax background effects.
 - **Auth Hardening**: Standardized on Email/Password authentication; Magic Links disabled for hospital security.
+- **Background Alerts**: Added Web Push (Service Worker) and Twilio (SMS) for multi-channel emergency notifications.
+- **Geospatial Features**: Integrated Mapbox and automatic Geolocation capture for real-time network visualization.
 
 ## Purpose
 - Track code changes and integration fixes immediately.

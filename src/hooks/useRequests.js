@@ -60,11 +60,19 @@ export function useRequests() {
       .channel(channelName)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'blood_requests' },
-        fetchRequests
+        (payload) => {
+          if (payload.eventType === 'INSERT') fetchRequests() // Refetch for complex joins on new rows
+          if (payload.eventType === 'UPDATE') {
+            setRequests(prev => prev.map(r => r.id === payload.new.id ? { ...r, ...payload.new } : r))
+          }
+          if (payload.eventType === 'DELETE') {
+            setRequests(prev => prev.filter(r => r.id !== payload.old.id))
+          }
+        }
       )
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'donor_responses' },
-        fetchRequests
+        fetchRequests // Responses have deep joins, easier to refetch
       )
       .subscribe()
 

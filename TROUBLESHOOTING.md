@@ -126,6 +126,29 @@ npm start
 
 ---
 
+## Notification Issues
+
+### "Enable Notifications" button does nothing
+
+**Cause:** Browser doesn't support Web Push, or permissions were already denied.
+
+**Fix:**
+1. Check the site settings in your browser address bar (lock icon).
+2. Ensure **Notifications** are set to "Allow".
+3. Verify `sw.js` is present in the `public` folder.
+4. Check DevTools -> Application -> Service Workers to see if `sw.js` is registered.
+
+### Notifications not appearing in background
+
+**Cause:** Service Worker is not active or VAPID keys are misconfigured.
+
+**Fix:**
+1. Ensure the app is served over HTTPS (or localhost).
+2. Check the Edge Function logs in Supabase for any `web-push` errors.
+3. Verify `REACT_APP_VAPID_PUBLIC_KEY` is set in your `.env`.
+
+---
+
 ## Build Issues
 
 ### App won't start / "Cannot find module" errors
@@ -223,14 +246,12 @@ All core files have been reviewed and verified clean:
 
 | File | Status | Notes |
 |------|--------|-------|
-| `App.jsx` | ✅ Clean | Proper auth state management, subscription cleanup |
-| `Auth.jsx` | ✅ Clean | Email/password auth, `isMounted` guard, error handling |
-| `LandingPage.jsx` | ✅ Clean | Static presentation, no side effects |
-| `HospitalDashboard.jsx` | ✅ Clean | Request management, real-time sync |
-| `DonorDashboard.jsx` | ✅ Clean | Alert handling, response management |
-| `useDonors.js` | ✅ Clean | `isMounted` ref, channel cleanup, throttling |
-| `useRequests.js` | ✅ Clean | `isMounted` ref, channel cleanup, throttling |
-| `supabase.js` | ✅ Clean | Simple client init, no side effects |
+| `App.jsx` | ✅ Fixed | Centralized anonymous auth to prevent race conditions |
+| `Auth.jsx` | ✅ Fixed | Added intelligent redirect after login |
+| `useNotifications.js` | ✅ Fixed | Added VAPID decoding and duplicate prevention |
+| `useRequests.js` | ✅ Optimized | Added state patching for near-instant updates |
+| `index.css` | ✅ Fixed | Re-enabled backdrop-filter and added mobile responsiveness |
+| `supabase.js` | ✅ Cleaned | Standardized env variable naming |
 
 ---
 

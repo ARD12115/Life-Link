@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useRequests } from '../hooks/useRequests'
-import { useDonors } from '../hooks/useDonors'
+import { useDonors, useHospitals } from '../hooks/useDonors'
+import EmergencyMap from './EmergencyMap'
 import { getCompatibleDonorGroups } from '../lib/bloodLogic'
 import {
   AlertCircle, Clock, CheckCircle, Plus, X,
@@ -62,6 +63,19 @@ function NewRequestModal({ myHospital, onClose }) {
         await supabase.from('donor_responses').insert(
           matched.map(d => ({ request_id: data.id, donor_id: d.id, status: 'alerted' }))
         )
+
+        // Trigger SMS Alerts for Urgent/Critical requests
+        if (['Urgent', 'Critical'].includes(form.urgency)) {
+          console.log('📡 Triggering emergency SMS alerts...')
+          await supabase.functions.invoke('send-blood-alert', {
+            body: {
+              requestId: data.id,
+              hospitalName: myHospital.name,
+              bloodGroup: form.blood_group,
+              urgency: form.urgency
+            }
+          })
+        }
       }
       onClose()
     }
@@ -143,6 +157,7 @@ export default function HospitalDashboard({ user }) {
   const [expandedId, setExpandedId] = useState(null)
   const [activeTab, setActiveTab]   = useState('emergencies')
   const [selectedDonor, setSelectedDonor] = useState(null)
+  const { hospitals } = useHospitals()
 
   useEffect(() => {
     async function loadProfile() {
@@ -172,7 +187,28 @@ export default function HospitalDashboard({ user }) {
           onSubmit={async (e) => {
             e.preventDefault()
             const fd = new FormData(e.target)
-            const { data } = await supabase.from('hospitals').insert([{ user_id: user.id, name: fd.get('name'), city: fd.get('city'), contact_person: fd.get('contact'), phone: fd.get('phone') }]).select().single()
+            
+            // Capture coordinates if available
+            let lat = null, lng = null;
+            try {
+              const pos = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+              });
+              lat = pos.coords.latitude;
+              lng = pos.coords.longitude;
+            } catch (err) {
+              console.warn("📡 Geolocation failed, proceeding with city only:", err);
+            }
+
+            const { data } = await supabase.from('hospitals').insert([{ 
+              user_id: user.id, 
+              name: fd.get('name'), 
+              city: fd.get('city'), 
+              contact_person: fd.get('contact'), 
+              phone: fd.get('phone'),
+              latitude: lat,
+              longitude: lng
+            }]).select().single()
             if (data) setMyHospital(data)
           }}>
           <h1 style={{ marginBottom: '12px', fontSize: '32px' }}>Hospital Setup</h1>
@@ -183,7 +219,10 @@ export default function HospitalDashboard({ user }) {
             <div className="form-field"><label className="field-label">Contact Person</label><input name="contact" required className="text-input" /></div>
             <div className="form-field"><label className="field-label">Phone</label><input name="phone" required className="text-input" /></div>
           </div>
-          <button type="submit" className="btn-solid" style={{ width: '100%' }}>Register Facility</button>
+          
+          <button type="submit" className="btn-solid" style={{ width: '100%' }}>
+            Register Facility
+          </button>
         </form>
       </div>
     )
@@ -226,6 +265,9 @@ export default function HospitalDashboard({ user }) {
       <div className="view-tabs">
         <button className={`tab-btn ${activeTab === 'emergencies' ? 'active' : ''}`} onClick={() => setActiveTab('emergencies')}>
           <Activity size={18} /> Active Emergencies
+        </button>
+        <button className={`tab-btn ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')}>
+          <MapPin size={18} /> Network Map
         </button>
         <button className={`tab-btn ${activeTab === 'directory' ? 'active' : ''}`} onClick={() => setActiveTab('directory')}>
           <Users size={18} /> Donor Directory
@@ -283,6 +325,16 @@ export default function HospitalDashboard({ user }) {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {activeTab === 'map' && (
+        <section className="fade-in">
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '24px' }}>Real-time Emergency Intel</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Visualising hospital needs and donor distribution across the network.</p>
+          </div>
+          <EmergencyMap donors={donors} hospitals={hospitals} requests={requests} />
         </section>
       )}
 

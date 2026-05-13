@@ -43,6 +43,8 @@ REACT_APP_SUPABASE_PUBLISHABLE_KEY=<your-anon-key>
 | `hospitals` | Hospital information |
 | `blood_requests` | Blood requests from hospitals |
 | `donor_responses` | Donor responses to requests |
+- **`push_subscriptions`**: Secure management of Web Push subscription objects with RLS.
+- **Geospatial Columns**: Added `latitude` and `longitude` to `donors` and `hospitals` for map visualization.
 
 ### Verify tables exist
 
@@ -72,6 +74,7 @@ The schema applies **9 Row-Level Security policies** using idempotent `DO` block
 | `donors_view_assigned_requests` | `blood_requests` | Donors see requests assigned to them |
 | `donors_manage_responses` | `donor_responses` | Donors manage their own responses |
 | `hospitals_manage_responses` | `donor_responses` | Hospitals manage responses for their requests |
+| `push_subscriptions_owner` | `push_subscriptions` | Users manage their own subscriptions |
 
 ### Verify policies
 

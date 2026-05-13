@@ -65,6 +65,14 @@ create table if not exists donor_responses (
   unique(request_id, donor_id)
 );
 
+-- Push Subscriptions Table (for Web Push API)
+create table if not exists push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade,
+  subscription jsonb not null,
+  created_at timestamptz default now()
+);
+
 -- Realtime Configuration (safe to re-run)
 -- Tables are automatically available for realtime if they are in public schema
 -- The following ensures they are in the publication (idempotent)
@@ -75,6 +83,7 @@ alter table profiles        enable row level security;
 alter table donors          enable row level security;
 alter table hospitals       enable row level security;
 alter table blood_requests  enable row level security;
+alter table push_subscriptions enable row level security;
 alter table donor_responses enable row level security;
 
 do $$ begin
@@ -182,6 +191,15 @@ do $$ begin
       where br.id = donor_responses.request_id
         and h.user_id = auth.uid()
     )
+  );
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create policy "push_subscriptions_owner" on push_subscriptions for all using (
+    auth.uid() = user_id
+  ) with check (
+    auth.uid() = user_id
   );
 exception when duplicate_object then null;
 end $$;

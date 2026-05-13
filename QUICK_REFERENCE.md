@@ -2,7 +2,8 @@
 
 ## 🟢 Status Indicators
 - **Console**: Look for `✅` and `📡 Realtime status: SUBSCRIBED`.
-- **UI**: Dashboards should load immediately after login/access.
+- **Notifications**: Check for `✅ Service Worker registered` in the console.
+- **Maps**: Markers should pulse red during active emergency requests.
 - **Theme**: Sun/Moon/Monitor icons in top-nav should switch modes instantly.
 
 ## 🚀 Common Commands
