@@ -61,35 +61,46 @@ export function useDonorAuth() {
   }
 
   async function completeOnboarding(name: string, bloodGroup: string, city: string, phone: string) {
-    if (!user) return { error: 'No authenticated user' };
+    if (!user?.id) {
+      console.error('Onboarding blocked: No user ID');
+      return { error: 'No authenticated user' };
+    }
 
-    // 1. Create Profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        user_id: user.id,
-        role: 'donor',
-        display_name: name,
-        phone: phone
-      });
+    try {
+      // 1. Create Profile (Atomic check)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: user.id,
+          role: 'donor',
+          display_name: name,
+          phone: phone
+        });
 
-    if (profileError) return { error: profileError };
+      if (profileError) {
+        if (profileError.code === '23505') return { error: 'Profile already exists' };
+        return { error: profileError.message };
+      }
 
-    // 2. Create Donor Record
-    const { data: donorData, error: donorError } = await supabase
-      .from('donors')
-      .insert({
-        user_id: user.id,
-        name,
-        blood_group: bloodGroup,
-        city,
-        phone
-      })
-      .select()
-      .single();
+      // 2. Create Donor Record
+      const { data: donorData, error: donorError } = await supabase
+        .from('donors')
+        .insert({
+          user_id: user.id,
+          name,
+          blood_group: bloodGroup,
+          city,
+          phone,
+          available: true
+        })
+        .select()
+        .single();
 
-    if (donorData) setDonor(donorData);
-    return { data: donorData, error: donorError };
+      if (donorData) setDonor(donorData);
+      return { data: donorData, error: donorError?.message };
+    } catch (e) {
+      return { error: 'A system error occurred. Please try again.' };
+    }
   }
 
   return { user, donor, loading, signInAnonymously, completeOnboarding, fetchDonorProfile };

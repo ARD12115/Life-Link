@@ -26,15 +26,24 @@ export function usePushNotifications(userId: string | undefined) {
   }, [userId]);
 
   async function saveTokenToSupabase(uid: string, token: string) {
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .upsert({
-        user_id: uid,
-        subscription: { type: 'expo', token: token },
-        created_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
+    if (!uid || !token) return;
 
-    if (error) console.error('Error saving push token:', error);
+    try {
+      const { error } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: uid,
+          subscription: { type: 'expo', token: token },
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (error) {
+        // Silent fail in production, but log for dev
+        console.error('Push registration failed:', error.message);
+      }
+    } catch (e) {
+      console.error('Network error during push registration:', e);
+    }
   }
 
   async function registerForPushNotificationsAsync() {

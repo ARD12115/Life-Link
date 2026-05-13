@@ -35,7 +35,7 @@ export function useRequests(bloodGroup?: string) {
   async function fetchRequests() {
     let query = supabase
       .from('blood_requests')
-      .select('*, hospital:hospitals(*)')
+      .select('*, hospital:hospitals(name, city, latitude, longitude)')
       .eq('status', 'open')
       .order('created_at', { ascending: false });
 
