@@ -103,17 +103,17 @@ export default function App() {
             session ? <Navigate to={isAdmin ? "/admin" : "/hospital"} replace /> : <LandingPage />
           } />
           
-          {/* Hospital flow: Requires auth + NOT an admin (to prevent mixup) */}
+          {/* Hospital flow: Show Auth if not logged in, otherwise check role */}
           <Route path="/hospital" element={
-            session && !isAdmin ? <HospitalDashboard user={session.user} /> : <Navigate to="/" replace />
+            !session ? <Auth /> : (!isAdmin ? <HospitalDashboard user={session.user} /> : <Navigate to="/admin" replace />)
           } />
           
-          {/* Donor flow: Handles its own session / anonymous auth */}
+          {/* Donor flow: Handles its own session */}
           <Route path="/donor" element={<DonorDashboard user={session?.user || null} />} />
 
-          {/* Admin flow: Protected by useAdmin */}
+          {/* Admin flow: Show Auth if not logged in, otherwise check admin status */}
           <Route path="/admin" element={
-            session && isAdmin ? <AdminDashboard user={session.user} /> : <Navigate to="/" replace />
+            !session ? <Auth /> : (isAdmin ? <AdminDashboard user={session.user} /> : <Navigate to="/hospital" replace />)
           } />
           
           <Route path="*" element={<Navigate to="/" replace />} />
