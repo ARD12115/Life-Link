@@ -1,0 +1,15 @@
+{
+  "name": "lifelink-monorepo",
+  "version": "1.0.0",
+  "description": "LifeLink Emergency Blood Network",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/get-ip.js && concurrently \"npm run web\" \"npm run app\"",
+    "web": "cd hospital_web && npm start",
+    "app": "cd donor_app && npx expo start",
+    "install-all": "npm install && cd hospital_web && npm install && cd ../donor_app && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

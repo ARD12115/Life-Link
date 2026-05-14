@@ -1,32 +1,47 @@
 import React, { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
 import HospitalDashboard from './components/HospitalDashboard'
 import DonorDashboard    from './components/DonorDashboard'
+import AdminDashboard    from './components/AdminDashboard'
 import Auth              from './components/Auth'
 import LandingPage       from './components/LandingPage'
 import { useTheme }      from './context/ThemeContext'
+import { useAdmin }      from './hooks/useAdmin'
 import { supabase }      from './lib/supabase'
-import { Sun, Moon, Monitor, LogOut, RotateCcw } from 'lucide-react'
+import { Toaster }       from 'react-hot-toast'
+import { Sun, Moon, Monitor, LogOut, ShieldCheck } from 'lucide-react'
 
 // Layout wrapper for consistent theme dock and controls
-function AppLayout({ children, session }) {
+function AppLayout({ children, session, isAdmin }) {
   const { theme, setTheme } = useTheme()
   const handleLogout = () => supabase.auth.signOut()
-  const handleReset = async () => {
-    if (window.confirm('Reset application? This will log you out and clear all local settings.')) {
-      localStorage.clear()
-      await supabase.auth.signOut()
-      window.location.reload()
-    }
-  }
 
   return (
     <div className="app-container">
       <header className="top-nav fade-in">
-        <div className="flex-center" style={{ gap: '12px' }}>
-          <img src="/LOGO.png" alt="LifeLink Logo" style={{ height: '32px' }} onError={(e) => { e.target.style.display = 'none'; }} />
-          <h1 style={{ fontSize: '20px', letterSpacing: '-0.5px' }}>LifeLink</h1>
-        </div>
+        <Toaster position="top-right" />
+        <Link to="/" className="flex-center" style={{ gap: '12px', textDecoration: 'none', color: 'inherit' }}>
+          <div style={{ 
+            width: '36px', 
+            height: '36px', 
+            borderRadius: '10px', 
+            overflow: 'hidden', 
+            background: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}>
+            <img 
+              src="/LOGO.png" 
+              alt="LifeLink Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              onError={(e) => { e.target.parentElement.style.display = 'none'; }} 
+            />
+          </div>
+          <h1 style={{ fontSize: '20px', letterSpacing: '-0.5px', fontWeight: 800 }}>LifeLink</h1>
+        </Link>
         
         <div className="nav-actions">
           <div className="theme-dock">
@@ -34,9 +49,15 @@ function AppLayout({ children, session }) {
             <button onClick={() => setTheme('dark')} className={`theme-btn ${theme === 'dark' ? 'active' : ''}`} title="Dark Mode"><Moon size={14} /></button>
             <button onClick={() => setTheme('system')} className={`theme-btn ${theme === 'system' ? 'active' : ''}`} title="System Mode"><Monitor size={14} /></button>
           </div>
-          <button onClick={handleReset} className="nav-item" title="Reset Application"><RotateCcw size={16} /></button>
           {session && (
-            <button onClick={handleLogout} className="nav-item" title="Sign Out"><LogOut size={16} /> Sign Out</button>
+            <>
+              {isAdmin && (
+                <a href="/admin" className="nav-item text-accent" style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+                  <ShieldCheck size={16} /> Control Panel
+                </a>
+              )}
+              <button onClick={handleLogout} className="nav-item" title="Sign Out"><LogOut size={16} /> Sign Out</button>
+            </>
           )}
         </div>
       </header>
@@ -49,6 +70,7 @@ function AppLayout({ children, session }) {
 export default function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  const { isAdmin } = useAdmin(session?.user)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -75,9 +97,11 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppLayout session={session}>
+      <AppLayout session={session} isAdmin={isAdmin}>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={
+            session ? <Navigate to={isAdmin ? "/admin" : "/hospital"} replace /> : <LandingPage />
+          } />
           
           {/* Hospital flow: Requires auth */}
           <Route path="/hospital" element={
@@ -86,6 +110,11 @@ export default function App() {
           
           {/* Donor flow: Handles its own session / anonymous auth */}
           <Route path="/donor" element={<DonorDashboard user={session?.user || null} />} />
+
+          {/* Admin flow: Protected by useAdmin */}
+          <Route path="/admin" element={
+            session && isAdmin ? <AdminDashboard user={session.user} /> : <Navigate to="/" replace />
+          } />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

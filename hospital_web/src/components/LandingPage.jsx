@@ -2,8 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, Hospital, ArrowRight, Activity, ShieldCheck, Zap, Droplets, Users, Clock } from 'lucide-react';
 
+import { QRCodeCanvas } from 'qrcode.react';
+
 export default function LandingPage() {
   const navigate = useNavigate();
+  const expoUrl = process.env.REACT_APP_EXPO_URL || 'exp://localhost:8081';
 
   return (
     <div className="landing-page">
@@ -17,13 +20,26 @@ export default function LandingPage() {
 
         <div className="fade-in" style={{ position: 'relative', zIndex: 1 }}>
           {/* Logo */}
-          <div style={{ marginBottom: '32px' }}>
-            <img 
-              src="/LOGO.png" 
-              alt="LifeLink Logo" 
-              style={{ height: '80px', marginBottom: '16px' }} 
-              onError={(e) => { e.target.style.display = 'none'; }} 
-            />
+          <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ 
+              width: '100px', 
+              height: '100px', 
+              borderRadius: '24px', 
+              overflow: 'hidden', 
+              background: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+              border: '2px solid rgba(255,255,255,0.2)'
+            }}>
+              <img 
+                src="/LOGO.png" 
+                alt="LifeLink Logo" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                onError={(e) => { e.target.parentElement.style.display = 'none'; }} 
+              />
+            </div>
           </div>
 
           {/* Badge */}
@@ -111,6 +127,33 @@ export default function LandingPage() {
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent-green)', letterSpacing: '0.1em', marginBottom: '12px' }}>STEP 03</div>
             <h3 style={{ fontSize: '20px', marginBottom: '12px' }}>Confirm & Save</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.6 }}>Donors confirm availability with a single tap. The hospital sees the response in real-time — no calls, no delays.</p>
+          </div>
+        </div>
+      </section>
+      
+      {/* Mobile App Bridge Section */}
+      <section className="mobile-bridge-section fade-in" style={{ padding: '80px 24px', background: 'rgba(239, 68, 68, 0.03)', borderTop: '1px solid var(--border-soft)', borderBottom: '1px solid var(--border-soft)' }}>
+        <div className="container flex-between" style={{ maxWidth: '1000px', margin: '0 auto', gap: '60px', display: 'flex', flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: '300px' }}>
+            <h2 style={{ fontSize: '36px', marginBottom: '20px' }}>Get the LifeLink App</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '18px', marginBottom: '32px', lineHeight: '1.6' }}>
+              Experience the fastest way to save lives. Our native app provides instant push notifications, 
+              real-time GPS tracking, and hardware-backed security for all donors.
+            </p>
+            <div className="feature-list" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontSize: '14px', fontWeight: 600 }}><ShieldCheck size={18} color="var(--accent-green)" /> Push Alerts</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontSize: '14px', fontWeight: 600 }}><ShieldCheck size={18} color="var(--accent-green)" /> Real-time GPS</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontSize: '14px', fontWeight: 600 }}><ShieldCheck size={18} color="var(--accent-green)" /> Biometrics</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontSize: '14px', fontWeight: 600 }}><ShieldCheck size={18} color="var(--accent-green)" /> Offline Mode</div>
+            </div>
+          </div>
+          
+          <div className="qr-card ui-panel" style={{ padding: '32px', textAlign: 'center', width: '280px', margin: '0 auto' }}>
+             <div className="qr-placeholder" style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
+                <QRCodeCanvas value={expoUrl} size={150} level="H" />
+             </div>
+             <p style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>SCAN FOR EXPO GO</p>
+             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{expoUrl}</p>
           </div>
         </div>
       </section>

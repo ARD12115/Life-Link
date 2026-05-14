@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator, TextInput, Alert } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator, TextInput, Alert, RefreshControl } from 'react-native';
 import { useDonorAuth } from '../../hooks/useDonorAuth';
 import { useRequests } from '../../hooks/useRequests';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 import * as Notifications from 'expo-notifications';
+import * as Haptics from 'expo-haptics';
 import { Theme } from '../../theme';
 import { Droplets, Heart, MapPin, Bell, ShieldCheck, Activity, Phone, Hospital, Clock, ChevronRight } from 'lucide-react-native';
 
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 
-export default function HomeScreen() {
+export default function DonorDashboard() {
   const { user, donor, loading: authLoading, signInAnonymously, completeOnboarding } = useDonorAuth();
-  const { requests, loading: requestsLoading, respondToRequest } = useRequests(donor?.blood_group);
+  const { requests, loading: requestsLoading, respondToRequest, refetch } = useRequests(donor?.blood_group);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
   const { expoPushToken } = usePushNotifications(user?.id);
   const [form, setForm] = useState({ name: '', bloodGroup: 'O+', city: '', phone: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -37,6 +45,10 @@ export default function HomeScreen() {
 
   const handleResponse = async (requestId: string) => {
     if (!donor) return;
+    
+    // Haptic feedback for tactile confirmation
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
     const { error } = await respondToRequest(requestId, donor.id);
     if (error) {
       Alert.alert('Error', 'Could not send response. Please try again.');
@@ -121,7 +133,12 @@ export default function HomeScreen() {
   // MAIN DASHBOARD
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.primary} />
+        }
+      >
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Welcome back,</Text>

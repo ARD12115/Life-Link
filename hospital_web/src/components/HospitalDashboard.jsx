@@ -9,8 +9,10 @@ import { getCompatibleDonorGroups } from '../lib/bloodLogic'
 import {
   AlertCircle, Clock, CheckCircle, Plus, X,
   Activity, ChevronDown, ChevronUp, MapPin, 
-  Droplets, Users, HeartPulse, Phone
+  Droplets, Users, HeartPulse, Phone, Heart
 } from 'lucide-react'
+import { QRCodeCanvas } from 'qrcode.react'
+import { CardSkeleton } from './Skeleton'
 
 const BLOOD_GROUPS  = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
 const COMPONENTS    = ['Whole blood', 'Platelets', 'Plasma', 'RBC']
@@ -40,10 +42,11 @@ function NewRequestModal({ myHospital, onClose }) {
   const { donors } = useDonors()
   const [form, setForm] = useState({
     hospital_id:  myHospital.id,
-    blood_group:  'B+',
+    blood_group:  'O+',
     component:    'Whole blood',
     units_needed: 1,
-    urgency:      'Urgent',
+    urgency:      'Critical',
+    delivery_point: '',
     notes:        '',
   })
   const [loading, setLoading]     = useState(false)
@@ -53,7 +56,11 @@ function NewRequestModal({ myHospital, onClose }) {
     setLoading(true)
     const { data, error } = await supabase
       .from('blood_requests')
-      .insert([{ ...form, units_needed: Number(form.units_needed) }])
+      .insert([{ 
+        ...form, 
+        units_needed: Number(form.units_needed),
+        delivery_point: form.delivery_point || 'General Admissions'
+      }])
       .select().single()
 
     if (!error && data) {
@@ -126,9 +133,18 @@ function NewRequestModal({ myHospital, onClose }) {
             </select>
           </div>
           <div className="form-field">
-            <label className="field-label">Units</label>
-            <input type="number" min={1} className="text-input" value={form.units_needed} onChange={e => setForm(f => ({ ...f, units_needed: parseInt(e.target.value) || 1 }))} />
+            <label className="field-label">Units (Gloved-Friendly)</label>
+            <div className="flex-center" style={{ gap: '12px', background: 'var(--bg-app)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-soft)' }}>
+              <button onClick={() => setForm(f => ({ ...f, units_needed: Math.max(1, f.units_needed - 1) }))} className="btn-ghost" style={{ padding: '8px 20px', fontSize: '20px' }}>-</button>
+              <span style={{ fontSize: '20px', fontWeight: 800, minWidth: '40px', textAlign: 'center' }}>{form.units_needed}</span>
+              <button onClick={() => setForm(f => ({ ...f, units_needed: f.units_needed + 1 }))} className="btn-ghost" style={{ padding: '8px 20px', fontSize: '20px' }}>+</button>
+            </div>
           </div>
+        </div>
+
+        <div className="form-field">
+          <label className="field-label">Precise Delivery Point (Ward / Room / ER Entrance)</label>
+          <input className="text-input" placeholder="e.g. ICU 2nd Floor, Room 204" value={form.delivery_point} onChange={e => setForm(f => ({ ...f, delivery_point: e.target.value }))} />
         </div>
 
         <div className="form-field">
@@ -165,6 +181,8 @@ export default function HospitalDashboard({ user }) {
   const [activeTab, setActiveTab]   = useState('emergencies')
   const [selectedDonor, setSelectedDonor] = useState(null)
   const { hospitals } = useHospitals()
+  const historyRequests = useMemo(() => requests.filter(r => r.hospital_id === myHospital?.id && r.status === 'closed'), [requests, myHospital])
+  const activeRequests = useMemo(() => requests.filter(r => r.hospital_id === myHospital?.id && r.status !== 'closed'), [requests, myHospital])
 
   useEffect(() => {
     async function loadProfile() {
@@ -176,14 +194,30 @@ export default function HospitalDashboard({ user }) {
     loadProfile()
   }, [user])
 
+  const updateStatus = async (id, newStatus) => {
+    let receivedBy = null
+    if (newStatus === 'closed') {
+      receivedBy = window.prompt('Enter staff name who received the blood:')
+      if (!receivedBy) return // Cancel if no name
+    }
+    
+    const { error } = await supabase
+      .from('blood_requests')
+      .update({ status: newStatus, notes: receivedBy ? `Received by: ${receivedBy}` : undefined })
+      .eq('id', id)
+      
+    if (error) toast.error('Update failed')
+    else toast.success('Request updated')
+  }
+
   const myRequests = useMemo(() => requests.filter(r => r.hospital_id === myHospital?.id), [requests, myHospital])
   
   const stats = useMemo(() => ({
-    open:       myRequests.filter(r => r.status === 'open').length,
-    inProgress: myRequests.filter(r => r.status === 'in_progress').length,
-    filled:     myRequests.filter(r => r.status === 'filled').length,
-    alerted:    myRequests.reduce((acc, r) => acc + (r.donor_responses?.length || 0), 0)
-  }), [myRequests])
+    open:       activeRequests.filter(r => r.status === 'open').length,
+    inProgress: activeRequests.filter(r => r.status === 'in_progress').length,
+    filled:     historyRequests.length,
+    alerted:    activeRequests.reduce((acc, r) => acc + (r.donor_responses?.length || 0), 0)
+  }), [activeRequests, historyRequests])
 
   if (profileLoading) return <div className="flex-center" style={{ height: '80vh', justifyContent: 'center', fontSize: '18px', fontWeight: 600 }}>Initialising Secure Medical Node...</div>
 
@@ -267,6 +301,17 @@ export default function HospitalDashboard({ user }) {
           <div className="stat-value" style={{ color: 'var(--accent-blue)' }}>{stats.alerted}</div>
           <div className="stat-label">Network Alerts</div>
         </div>
+        
+        {/* Mobile App Promotion for Staff */}
+        <div className="ui-panel stat-card flex-center" style={{ flexDirection: 'row', gap: '16px', padding: '12px 20px', border: '1px solid var(--accent-blue)' }}>
+           <div style={{ background: 'white', padding: '4px', borderRadius: '4px', display: 'flex', justifyContent: 'center' }}>
+              <QRCodeCanvas value={process.env.REACT_APP_EXPO_URL || 'exp://localhost:8081'} size={40} level="L" />
+           </div>
+           <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: '13px', fontWeight: 700 }}>Expo Bridge</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Scan for Expo Go</div>
+           </div>
+        </div>
       </div>
 
       <div className="view-tabs">
@@ -279,6 +324,9 @@ export default function HospitalDashboard({ user }) {
         <button className={`tab-btn ${activeTab === 'directory' ? 'active' : ''}`} onClick={() => setActiveTab('directory')}>
           <Users size={18} /> Donor Directory
         </button>
+        <button className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`} onClick={() => setActiveTab('history')}>
+          <Clock size={18} /> Past Deliveries
+        </button>
       </div>
 
       {activeTab === 'emergencies' && (
@@ -289,21 +337,27 @@ export default function HospitalDashboard({ user }) {
           </div>
           
           <div className="stream-container">
-            {!loading && myRequests.length === 0 && (
-              <div className="ui-panel flex-center" style={{ padding: '80px', justifyContent: 'center', flexDirection: 'column', gap: '20px', borderStyle: 'dashed', background: 'transparent' }}>
-                <Droplets size={48} strokeWidth={1} style={{ color: 'var(--border-soft)' }} />
-                <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No active emergency requests</p>
+            {loading ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+                {[1, 2, 3].map(i => <CardSkeleton key={i} />)}
               </div>
-            )}
-
-            {myRequests.map(req => (
+            ) : myRequests.length === 0 ? (
+              <div className="ui-panel flex-center" style={{ padding: '80px', justifyContent: 'center', flexDirection: 'column', gap: '20px', borderStyle: 'dashed', background: 'transparent' }}>
+                <Heart size={48} strokeWidth={1} style={{ color: 'var(--accent-red)' }} />
+                <h3 style={{ fontSize: '20px', fontWeight: 600 }}>System Secure & Idle</h3>
+                <p style={{ color: 'var(--text-muted)', fontWeight: 500, textAlign: 'center', maxWidth: '350px' }}>
+                  There are no active blood requests at this time. Use the "New Request" button to alert donors.
+                </p>
+              </div>
+            ) : (
+              activeRequests.map(req => (
               <div key={req.id} className={`ui-panel data-row ${expandedId === req.id ? 'active' : ''}`} onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}>
                 <div className="flex-center" style={{ gap: '24px' }}>
                   <div className="blood-tag">{req.blood_group}</div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '18px' }}>{req.component}</div>
                     <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {req.units_needed} Units Required • {timeAgo(req.created_at)}
+                      {req.units_needed} Units Required • {req.delivery_point ? `Deliver to: ${req.delivery_point}` : timeAgo(req.created_at)}
                     </div>
                   </div>
                 </div>
@@ -322,7 +376,14 @@ export default function HospitalDashboard({ user }) {
                           {req.donor_responses.map(dr => (
                             <div key={dr.id} className="ui-panel" style={{ padding: '16px', background: 'var(--bg-app)', borderRadius: '16px' }}>
                               <div style={{ fontWeight: 700, fontSize: '14px' }}>{dr.donors?.name}</div>
-                              <div style={{ fontSize: '12px', color: 'var(--accent-green)', marginTop: '4px', fontWeight: 600 }}>{dr.status.toUpperCase()}</div>
+                              <div className="flex-between" style={{ marginTop: '8px' }}>
+                                <div style={{ fontSize: '12px', color: dr.status === 'accepted' ? 'var(--accent-green)' : 'var(--text-muted)', fontWeight: 600 }}>{dr.status.toUpperCase()}</div>
+                                {dr.status === 'accepted' && dr.donors?.phone && (
+                                  <a href={`tel:${dr.donors.phone}`} className="btn-solid" style={{ padding: '4px 8px', fontSize: '11px', borderRadius: '8px', textDecoration: 'none' }}>
+                                    <Phone size={12} /> CALL
+                                  </a>
+                                )}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -330,10 +391,11 @@ export default function HospitalDashboard({ user }) {
                   </div>
                 )}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            ))
+          )}
+        </div>
+      </section>
+    )}
 
       {activeTab === 'map' && (
         <section className="fade-in">
@@ -346,91 +408,96 @@ export default function HospitalDashboard({ user }) {
       )}
 
       {activeTab === 'directory' && (
-        <section className="fade-in">
-          <div style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '24px' }}>Network Donors</h2>
-            <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Total registered donors in the LifeLink network.</p>
+        <section>
+          <div className="flex-between" style={{ marginBottom: '32px' }}>
+            <div>
+              <h2 style={{ fontSize: '24px' }}>Donor Command Center</h2>
+              <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Manage and contact the volunteer donor network.</p>
+            </div>
+            <div className="flex-center" style={{ gap: '12px' }}>
+               <select 
+                 className="text-input" 
+                 style={{ width: '150px', padding: '8px' }}
+                 onChange={(e) => setSelectedDonor(e.target.value === 'All' ? null : e.target.value)}
+               >
+                 <option>All Blood Groups</option>
+                 {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}
+               </select>
+            </div>
           </div>
           
-          <div className="master-detail-container">
-            <div className="master-list">
-              {donors.length === 0 ? (
-                <div className="ui-panel flex-center" style={{ padding: '40px', justifyContent: 'center', borderStyle: 'dashed', background: 'transparent' }}>
-                  <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No donors found</p>
-                </div>
-              ) : (
-                donors.map(donor => (
-                  <div 
-                    key={donor.id} 
-                    className={`ui-panel directory-card master-item ${selectedDonor?.id === donor.id ? 'active' : ''}`}
-                    onClick={() => setSelectedDonor(donor)}
-                    style={{ cursor: 'pointer', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}
-                  >
-                    <div className="blood-tag" style={{ minWidth: '48px', padding: '8px 0', fontSize: '14px', justifyContent: 'center', display: 'flex' }}>
-                      {donor.blood_group}
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{donor.name}</h3>
-                      <div className="flex-center" style={{ gap: '6px', fontSize: '13px', marginTop: '4px', color: 'var(--text-muted)' }}>
+          <div className="ui-panel" style={{ padding: '0', overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'left' }}>
+                  <th style={{ padding: '16px 24px', fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Donor Name</th>
+                  <th style={{ padding: '16px 24px', fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Type</th>
+                  <th style={{ padding: '16px 24px', fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Status</th>
+                  <th style={{ padding: '16px 24px', fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)' }}>City</th>
+                  <th style={{ padding: '16px 24px', fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted)', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {donors.filter(d => !selectedDonor || d.blood_group === selectedDonor).map(donor => (
+                  <tr key={donor.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                    <td style={{ padding: '16px 24px', fontWeight: 700 }}>{donor.name}</td>
+                    <td style={{ padding: '16px 24px' }}><span className="blood-tag" style={{ padding: '4px 8px', fontSize: '12px' }}>{donor.blood_group}</span></td>
+                    <td style={{ padding: '16px 24px' }}>
+                      <div className="flex-center" style={{ gap: '6px', fontSize: '13px' }}>
                         <span className={`status-dot ${donor.available ? 'active' : 'offline'}`}></span>
-                        {donor.available ? 'Available' : 'Offline'}
+                        {donor.available ? 'READY' : 'OFFLINE'}
                       </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            
-            <div className="detail-pane ui-panel" style={{ padding: '32px', minHeight: '400px' }}>
-              {selectedDonor ? (
-                <div className="fade-in">
-                  <div className="flex-between" style={{ marginBottom: '32px' }}>
-                    <div className="flex-center" style={{ gap: '20px' }}>
-                      <div className="blood-tag" style={{ width: '64px', height: '64px', fontSize: '24px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {selectedDonor.name[0]}
+                    </td>
+                    <td style={{ padding: '16px 24px', color: 'var(--text-muted)', fontSize: '14px' }}>{donor.city}</td>
+                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                       {donor.phone && (
+                         <a href={`tel:${donor.phone}`} className="btn-solid" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
+                            <Phone size={14} /> CALL
+                         </a>
+                       )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {donors.length === 0 && (
+              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>No donors found in directory.</div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'history' && (
+        <section>
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '24px' }}>Past Deliveries</h2>
+            <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Chronological log of fulfilled blood requests and saved lives.</p>
+          </div>
+          
+          <div className="stream-container">
+            {historyRequests.length === 0 ? (
+              <div className="ui-panel flex-center" style={{ padding: '80px', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                 No past records found.
+              </div>
+            ) : (
+              historyRequests.map(req => (
+                <div key={req.id} className="ui-panel" style={{ padding: '24px', marginBottom: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                   <div className="flex-between">
+                      <div className="flex-center" style={{ gap: '20px' }}>
+                         <div className="blood-tag">{req.blood_group}</div>
+                         <div>
+                            <div style={{ fontWeight: 700 }}>{req.component}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(req.created_at).toLocaleDateString()}</div>
+                         </div>
                       </div>
-                      <div>
-                        <h2 style={{ fontSize: '24px', marginBottom: '4px' }}>{selectedDonor.name}</h2>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
-                          Blood Group: <strong style={{ color: 'var(--text-main)' }}>{selectedDonor.blood_group}</strong>
-                        </div>
+                      <div style={{ textAlign: 'right' }}>
+                         <div style={{ fontSize: '14px', fontWeight: 600 }}>{req.notes || 'Fulfilled'}</div>
+                         <div style={{ fontSize: '12px', color: 'var(--accent-green)' }}>COMPLETED</div>
                       </div>
-                    </div>
-                    <div className="flex-center" style={{ gap: '8px', fontSize: '14px', fontWeight: 600, padding: '8px 16px', borderRadius: '20px', background: 'var(--bg-app)', border: '1px solid var(--border-soft)' }}>
-                      <span className={`status-dot ${selectedDonor.available ? 'active' : 'offline'}`}></span>
-                      {selectedDonor.available ? 'Ready for Donation' : 'Currently Offline'}
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
-                    <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '20px' }}>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px' }}>Location</div>
-                      <div className="flex-center" style={{ gap: '8px', fontSize: '16px', fontWeight: 500 }}><MapPin size={18} /> {selectedDonor.city}</div>
-                    </div>
-                    <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '20px' }}>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px' }}>Contact Number</div>
-                      <div className="flex-center" style={{ gap: '8px', fontSize: '16px', fontWeight: 500 }}><Phone size={18} /> {selectedDonor.phone || 'N/A'}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '24px' }}>
-                    <div className="flex-between" style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-soft)', marginBottom: '16px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Total Lifetime Donations</span>
-                      <strong style={{ fontSize: '18px' }}>{selectedDonor.total_donations || 0}</strong>
-                    </div>
-                    <div className="flex-between">
-                      <span style={{ color: 'var(--text-muted)' }}>Joined Network</span>
-                      <strong style={{ fontSize: '16px' }}>{new Date(selectedDonor.created_at).toLocaleDateString()}</strong>
-                    </div>
-                  </div>
+                   </div>
                 </div>
-              ) : (
-                <div className="flex-center" style={{ height: '100%', flexDirection: 'column', gap: '16px', color: 'var(--text-muted)' }}>
-                  <Users size={48} strokeWidth={1} style={{ opacity: 0.5 }} />
-                  <p style={{ fontSize: '16px' }}>Select a donor to view details</p>
-                </div>
-              )}
-            </div>
+              ))
+            )}
           </div>
         </section>
       )}

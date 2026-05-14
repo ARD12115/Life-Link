@@ -48,20 +48,23 @@ export function useRequests(bloodGroup?: string) {
     setLoading(false);
   }
 
-  async function respondToRequest(requestId: string, donorId: string) {
-    const { data, error } = await supabase
-      .from('donor_responses')
-      .insert({
-        request_id: requestId,
-        donor_id: donorId,
-        status: 'confirmed',
-        responded_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+  const respondToRequest = async (requestId: string, donorId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('donor_responses')
+        .insert([{ request_id: requestId, donor_id: donorId, status: 'accepted' }])
+        .select();
 
-    return { data, error };
-  }
+      if (!error) {
+        // Optimistic update to UI state
+        fetchRequests();
+      }
+      return { data, error };
+    } catch (err) {
+      console.error('📡 Response Error:', err);
+      return { data: null, error: err };
+    }
+  };
 
   return { requests, loading, respondToRequest, refetch: fetchRequests };
 }

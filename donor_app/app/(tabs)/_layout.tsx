@@ -1,9 +1,12 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Theme } from '../../theme';
-import { Heart, Map as MapIcon, History, User } from 'lucide-react-native';
+import { useDonorAuth } from '../../hooks/useDonorAuth';
+import { Heart, Map as MapIcon, History, User, ShieldCheck } from 'lucide-react-native';
 
 export default function TabLayout() {
+  const { role } = useDonorAuth();
+
   return (
     <Tabs
       screenOptions={{
@@ -41,6 +44,16 @@ export default function TabLayout() {
           headerTitle: 'Nearby Network',
         }}
       />
+      {role === 'admin' && (
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: 'Admin',
+            tabBarIcon: ({ color }) => <ShieldCheck size={24} color={color} />,
+            headerTitle: 'System Control',
+          }}
+        />
+      )}
     </Tabs>
   );
 }

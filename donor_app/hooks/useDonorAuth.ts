@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 export function useDonorAuth() {
   const [user, setUser] = useState<any>(null);
   const [donor, setDonor] = useState<any>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,14 +41,14 @@ export function useDonorAuth() {
   }
 
   async function fetchDonorProfile(userId: string) {
-    const { data, error } = await supabase
-      .from('donors')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
+    const [{ data: donorData }, { data: profileData }] = await Promise.all([
+      supabase.from('donors').select('*').eq('user_id', userId).single(),
+      supabase.from('profiles').select('role').eq('user_id', userId).single()
+    ]);
       
-    if (data) setDonor(data);
-    return { data, error };
+    if (donorData) setDonor(donorData);
+    if (profileData) setRole(profileData.role);
+    return { donorData, profileData };
   }
 
   async function signInAnonymously() {
