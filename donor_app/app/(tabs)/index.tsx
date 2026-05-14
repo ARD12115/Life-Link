@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator, TextInput, Alert, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, SafeAreaView, ActivityIndicator, TextInput, Alert, RefreshControl, KeyboardAvoidingView, Platform } from 'react-native';
 import { useDonorAuth } from '../../hooks/useDonorAuth';
 import { useRequests } from '../../hooks/useRequests';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
@@ -61,6 +61,10 @@ export default function DonorDashboard() {
   if (!user || !donor) {
     return (
       <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.heroSection}>
             <View style={styles.iconContainer}>
@@ -126,7 +130,8 @@ export default function DonorDashboard() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
     );
   }
 
