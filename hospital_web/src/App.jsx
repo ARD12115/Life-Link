@@ -103,9 +103,9 @@ export default function App() {
             session ? <Navigate to={isAdmin ? "/admin" : "/hospital"} replace /> : <LandingPage />
           } />
           
-          {/* Hospital flow: Requires auth */}
+          {/* Hospital flow: Requires auth + NOT an admin (to prevent mixup) */}
           <Route path="/hospital" element={
-            session ? <HospitalDashboard user={session.user} /> : <Auth />
+            session && !isAdmin ? <HospitalDashboard user={session.user} /> : <Navigate to="/" replace />
           } />
           
           {/* Donor flow: Handles its own session / anonymous auth */}

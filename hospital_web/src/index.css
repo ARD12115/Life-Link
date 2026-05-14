@@ -694,3 +694,16 @@ h4 {
 /* Emergency Slam Rendering (No Delays) */
 .fade-in { animation: none !important; opacity: 1 !important; }
 * { transition: none !important; }
+
+/* Mobile Responsiveness Overrides */
+@media (max-width: 768px) {
+  .top-nav { padding: 12px 16px; }
+  .top-nav h1 { font-size: 16px; }
+  .nav-actions { gap: 8px; }
+  .stat-grid { grid-template-columns: 1fr 1fr !important; gap: 12px; }
+  .container { padding: 0 16px; }
+  .hero-section h2 { font-size: 32px !important; }
+  .tab-btn { padding: 8px 12px; font-size: 13px; }
+  .data-row { padding: 16px !important; }
+  .blood-tag { width: 40px; height: 40px; font-size: 14px; }
+}

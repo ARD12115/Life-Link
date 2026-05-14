@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useEffect, useState } from 'react';
@@ -69,9 +70,15 @@ export function usePushNotifications(userId: string | undefined) {
         console.warn('Failed to get push token for push notification!');
         return;
       }
-      token = (await Notifications.getExpoPushTokenAsync({
-        projectId: 'your-project-id' // Replace with your Expo project ID if using EAS
-      })).data;
+      try {
+        const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+        token = (await Notifications.getExpoPushTokenAsync({
+          ...(projectId ? { projectId } : {}),
+        })).data;
+      } catch (e) {
+        console.warn('📡 Push Token Fetch Failed (Likely missing Project ID):', e);
+        return;
+      }
     } else {
       console.log('Must use physical device for Push Notifications');
     }

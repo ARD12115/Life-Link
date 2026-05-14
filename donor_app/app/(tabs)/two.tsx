@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
 import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
-import { useDonors, useHospitals } from '../../hooks/useDonors';
+import { useHospitals } from '../../hooks/useDonors';
 import { Theme } from '../../theme';
 import { Hospital, Droplets, MapPin, Navigation } from 'lucide-react-native';
 
@@ -46,19 +45,10 @@ const mapStyle = [
 ];
 
 export default function MapScreen() {
-  const { donors, loading: donorsLoading } = useDonors();
   const { hospitals, loading: hospitalsLoading } = useHospitals();
+  // Filter for hospitals that actually have active requests (Optional: would need useRequests hook here)
   
-  // Apply jitter to donor locations for privacy
-  const processedDonors = useMemo(() => {
-    return donors.map(d => ({
-      ...d,
-      latitude: (d.latitude || 19.0760) + (Math.random() - 0.5) * 0.005,
-      longitude: (d.longitude || 72.8777) + (Math.random() - 0.5) * 0.005,
-    }));
-  }, [donors]);
-
-  if (donorsLoading || hospitalsLoading) {
+  if (hospitalsLoading) {
     return (
       <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color={Theme.colors.primary} />
@@ -79,50 +69,25 @@ export default function MapScreen() {
           longitudeDelta: 0.0421,
         }}
       >
-        {/* Hospital Markers */}
+        {/* Hospital Mission Points */}
         {hospitals.map(h => (
           <Marker
             key={h.id}
             coordinate={{ latitude: h.latitude || 19.0760, longitude: h.longitude || 72.8777 }}
             tracksViewChanges={false}
           >
-            <View style={[styles.markerContainer, { backgroundColor: Theme.colors.secondary }]}>
-              <Hospital size={16} color="white" />
+            <View style={[styles.markerContainer, { backgroundColor: Theme.colors.primary }]}>
+               <Hospital size={16} color="white" />
             </View>
             <Callout tooltip>
               <View style={styles.callout}>
                 <Text style={styles.calloutTitle}>{h.name}</Text>
-                <Text style={styles.calloutSub}>{h.city}</Text>
+                <Text style={styles.calloutSub}>Emergency Receiving Point</Text>
               </View>
             </Callout>
           </Marker>
         ))}
-
-        {/* Donor Markers */}
-        {processedDonors.map(d => (
-          <Marker
-            key={d.id}
-            coordinate={{ latitude: d.latitude, longitude: d.longitude }}
-            tracksViewChanges={false}
-          >
-            <View style={[styles.markerContainer, { backgroundColor: Theme.colors.accent }]}>
-              <Droplets size={14} color="white" />
-            </View>
-          </Marker>
-        ))}
       </MapView>
-
-      {/* Floating Legend */}
-      <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Theme.colors.secondary }]} />
-          <Text style={styles.legendText}>Hospitals</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: Theme.colors.accent }]} />
-          <Text style={styles.legendText}>Nearby Donors</Text>
-        </View>
-      </View>
 
       {/* Recenter Button */}
       <TouchableOpacity style={styles.recenterBtn}>

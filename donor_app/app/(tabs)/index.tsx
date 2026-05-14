@@ -144,84 +144,67 @@ export default function DonorDashboard() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Theme.colors.primary} />
         }
       >
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Welcome back,</Text>
-            <Text style={styles.donorName}>{donor.name}</Text>
-          </View>
-          <View style={styles.bloodBadge}>
-            <Text style={styles.bloodBadgeText}>{donor.blood_group}</Text>
-          </View>
+        {/* Hero Header: Focus on Impact */}
+        <View style={styles.heroHeader}>
+           <Text style={styles.impactTitle}>Your Impact</Text>
+           <View style={styles.impactCard}>
+              <View style={styles.impactItem}>
+                 <Heart size={32} color="white" fill="white" />
+                 <Text style={styles.impactValue}>{donor.total_donations || 0}</Text>
+                 <Text style={styles.impactLabel}>Lives Saved</Text>
+              </View>
+              <View style={styles.impactDivider} />
+              <View style={styles.impactItem}>
+                 <Droplets size={32} color="white" />
+                 <Text style={styles.impactValue}>{donor.blood_group}</Text>
+                 <Text style={styles.impactLabel}>Blood Type</Text>
+              </View>
+           </View>
         </View>
 
-        {/* Status Section */}
-        <View style={styles.statusRow}>
-          <View style={styles.statusItem}>
-             <ShieldCheck size={20} color={Theme.colors.accent} />
-             <Text style={styles.statusText}>Verified Donor</Text>
-          </View>
-          <View style={styles.statusItem}>
-             <Activity size={20} color={Theme.colors.secondary} />
-             <Text style={styles.statusText}>Active Now</Text>
-          </View>
-        </View>
-
-        {/* Emergency Alert Center */}
-        <View style={styles.alertCenter}>
-           <View style={styles.alertHeader}>
-              <Bell size={24} color={Theme.colors.primary} />
-              <Text style={styles.alertTitle}>Emergency Alerts</Text>
-              {requests.length > 0 && (
-                <View style={styles.liveBadge}>
-                  <Text style={styles.liveBadgeText}>LIVE</Text>
-                </View>
-              )}
+        {/* Tactical Emergency Center */}
+        <View style={styles.missionCenter}>
+           <View style={styles.sectionHeader}>
+              <Activity size={20} color={Theme.colors.primary} />
+              <Text style={styles.sectionTitle}>ACTIVE MISSIONS</Text>
+              {requests.length > 0 && <View style={styles.livePulse} />}
            </View>
            
            {requests.length === 0 ? (
-              <View style={styles.emptyAlerts}>
-                <Activity size={48} color={Theme.colors.border} />
-                <Text style={styles.emptyAlertsText}>No active emergencies nearby.</Text>
-                <Text style={styles.emptyAlertsSub}>We'll notify you instantly if someone needs your {donor.blood_group} blood.</Text>
+              <View style={styles.idleState}>
+                 <ShieldCheck size={48} color={Theme.colors.border} />
+                 <Text style={styles.idleTitle}>System Secure</Text>
+                 <Text style={styles.idleSub}>No emergencies needing {donor.blood_group} in {donor.city} right now.</Text>
               </View>
            ) : (
-             <View style={styles.requestList}>
-                {requests.map(req => (
-                  <TouchableOpacity key={req.id} style={styles.requestCard} onPress={() => handleResponse(req.id)}>
-                    <View style={styles.requestInfo}>
-                       <View style={[styles.urgencyDot, { backgroundColor: req.urgency === 'Critical' ? Theme.colors.primary : Theme.colors.secondary }]} />
-                       <View>
-                          <Text style={styles.hospitalName}>{req.hospital?.name || 'Medical Facility'}</Text>
-                          <Text style={styles.locationText}>{req.hospital?.city || 'Nearby'}</Text>
-                       </View>
-                    </View>
-                    <View style={styles.actionArea}>
-                       <Text style={styles.timeText}>{new Date(req.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                       <ChevronRight size={20} color={Theme.colors.textMuted} />
-                    </View>
-                  </TouchableOpacity>
-                ))}
-             </View>
+              <View style={styles.missionList}>
+                 {requests.map(req => (
+                   <TouchableOpacity key={req.id} style={styles.missionCard} onPress={() => handleResponse(req.id)}>
+                     <View style={styles.missionMain}>
+                        <View style={styles.hospitalInfo}>
+                           <Hospital size={18} color={Theme.colors.primary} />
+                           <Text style={styles.hospitalName}>{req.hospital?.name}</Text>
+                        </View>
+                        <View style={styles.unitBadge}>
+                           <Text style={styles.unitText}>{req.units_needed}U</Text>
+                        </View>
+                     </View>
+                     <View style={styles.missionFooter}>
+                        <View style={styles.locationTag}>
+                           <MapPin size={12} color={Theme.colors.textMuted} />
+                           <Text style={styles.locationText}>{req.delivery_point || req.hospital?.city}</Text>
+                        </View>
+                        <Text style={styles.actionPrompt}>RESPOND NOW</Text>
+                     </View>
+                   </TouchableOpacity>
+                 ))}
+              </View>
            )}
         </View>
 
-        {/* Quick Stats */}
-        <View style={styles.statsGrid}>
-           <View style={styles.statCard}>
-              <Droplets size={24} color={Theme.colors.primary} />
-              <Text style={styles.statValue}>{donor.total_donations || 0}</Text>
-              <Text style={styles.statLabel}>Donations</Text>
-           </View>
-           <View style={styles.statCard}>
-              <MapPin size={24} color={Theme.colors.secondary} />
-              <Text style={styles.statValue}>{donor.city}</Text>
-              <Text style={styles.statLabel}>Location</Text>
-           </View>
-        </View>
-
-        {/* Native Simulation Button */}
-        <TouchableOpacity style={styles.simulationBtn} onPress={sendTestPush}>
-           <Text style={styles.simulationBtnText}>Test Native Push</Text>
+        {/* Testing / Admin Bypass (Only for Dev) */}
+        <TouchableOpacity style={styles.devBtn} onPress={sendTestPush}>
+           <Text style={styles.devBtnText}>Simulate Emergency Alert</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -327,174 +310,160 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  heroHeader: {
+    marginTop: Theme.spacing.xl,
     marginBottom: Theme.spacing.xl,
-    marginTop: Theme.spacing.md,
   },
-  greeting: {
-    ...Theme.typography.caption,
-  },
-  donorName: {
+  impactTitle: {
     ...Theme.typography.h1,
     color: Theme.colors.text,
+    marginBottom: 16,
   },
-  bloodBadge: {
+  impactCard: {
     backgroundColor: Theme.colors.primary,
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  bloodBadgeText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  statusRow: {
+    borderRadius: 24,
+    padding: 24,
     flexDirection: 'row',
-    gap: 16,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    shadowColor: Theme.colors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  impactItem: {
+    alignItems: 'center',
+  },
+  impactValue: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: 'white',
+    marginTop: 8,
+  },
+  impactLabel: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  impactDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  missionCenter: {
     marginBottom: Theme.spacing.xl,
   },
-  statusItem: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: Theme.colors.card,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: Theme.borderRadius.full,
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
+    marginBottom: 16,
   },
-  statusText: {
-    color: Theme.colors.text,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  alertCenter: {
-    backgroundColor: Theme.colors.card,
-    borderRadius: Theme.borderRadius.lg,
-    padding: Theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-    marginBottom: Theme.spacing.xl,
-  },
-  alertHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: Theme.spacing.xl,
-  },
-  alertTitle: {
-    ...Theme.typography.h2,
-    color: Theme.colors.text,
-  },
-  emptyAlerts: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    gap: 12,
-  },
-  emptyAlertsText: {
-    color: Theme.colors.text,
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  emptyAlertsSub: {
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
     color: Theme.colors.textMuted,
-    textAlign: 'center',
-    fontSize: 14,
+    letterSpacing: 1.5,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: Theme.spacing.xl,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: Theme.colors.card,
-    padding: Theme.spacing.lg,
-    borderRadius: Theme.borderRadius.lg,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Theme.colors.text,
-    marginTop: 8,
-  },
-  statLabel: {
-    ...Theme.typography.caption,
-  },
-  simulationBtn: {
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-    borderRadius: Theme.borderRadius.md,
-    padding: Theme.spacing.md,
-    alignItems: 'center',
-    opacity: 0.7,
-  },
-  simulationBtnText: {
-    color: Theme.colors.textMuted,
-    fontSize: 14,
-  },
-  liveBadge: {
-    backgroundColor: Theme.colors.primary,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  liveBadgeText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  requestList: {
-    gap: 12,
-  },
-  requestCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: Theme.borderRadius.md,
-    padding: Theme.spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-  },
-  requestInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  urgencyDot: {
+  livePulse: {
     width: 8,
     height: 8,
     borderRadius: 4,
+    backgroundColor: Theme.colors.primary,
   },
-  hospitalName: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
+  missionList: {
+    gap: 12,
   },
-  locationText: {
-    color: Theme.colors.textMuted,
-    fontSize: 12,
+  missionCard: {
+    backgroundColor: Theme.colors.card,
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
   },
-  actionArea: {
+  missionMain: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  hospitalInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
-  timeText: {
+  hospitalName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Theme.colors.text,
+  },
+  unitBadge: {
+    backgroundColor: 'rgba(255,45,85,0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  unitText: {
+    color: Theme.colors.primary,
+    fontWeight: '800',
+    fontSize: 14,
+  },
+  missionFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: Theme.colors.border,
+  },
+  locationTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  locationText: {
+    fontSize: 13,
     color: Theme.colors.textMuted,
+    fontWeight: '500',
+  },
+  actionPrompt: {
+    color: Theme.colors.primary,
     fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  idleState: {
+    backgroundColor: Theme.colors.card,
+    borderRadius: 24,
+    padding: 40,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Theme.colors.border,
+  },
+  idleTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Theme.colors.text,
+    marginTop: 16,
+  },
+  idleSub: {
+    fontSize: 14,
+    color: Theme.colors.textMuted,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+  devBtn: {
+    padding: 16,
+    alignItems: 'center',
+    opacity: 0.5,
+  },
+  devBtnText: {
+    fontSize: 12,
+    color: Theme.colors.textMuted,
+    textDecorationLine: 'underline',
   }
 });

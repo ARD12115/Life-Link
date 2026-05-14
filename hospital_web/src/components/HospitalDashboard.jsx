@@ -418,7 +418,12 @@ export default function HospitalDashboard({ user }) {
                <select 
                  className="text-input" 
                  style={{ width: '150px', padding: '8px' }}
-                 onChange={(e) => setSelectedDonor(e.target.value === 'All' ? null : e.target.value)}
+                 onChange={(e) => {
+                   const val = e.target.value;
+                   setSelectedDonor(val === 'All Blood Groups' ? null : val);
+                   // Trigger server-side fetch for the specific group
+                   refetch(val);
+                 }}
                >
                  <option>All Blood Groups</option>
                  {BLOOD_GROUPS.map(bg => <option key={bg} value={bg}>{bg}</option>)}

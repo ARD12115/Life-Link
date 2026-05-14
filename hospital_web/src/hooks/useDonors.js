@@ -9,12 +9,20 @@ export function useDonors() {
   const [error, setError]     = useState(null)
   const isMounted             = useRef(true)
 
-  const fetchDonors = useCallback(async () => {
+  const fetchDonors = useCallback(async (filterGroup = null) => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('donors')
         .select('*')
+        .order('available', { ascending: false })
         .order('name')
+        .limit(50)
+
+      if (filterGroup && filterGroup !== 'All Blood Groups') {
+        query = query.eq('blood_group', filterGroup)
+      }
+
+      const { data, error } = await query
 
       if (!isMounted.current) return
 
