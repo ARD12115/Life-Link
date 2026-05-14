@@ -162,6 +162,7 @@ export default function DonorDashboard({ user }) {
     )
   }
 
+  // MAIN DASHBOARD
   return (
     <div className="dashboard-page fade-in">
       <header className="header-section">
@@ -176,71 +177,59 @@ export default function DonorDashboard({ user }) {
           <button 
             onClick={subscribe} 
             className={`btn-${permission === 'granted' ? 'solid' : 'ghost'}`} 
-            style={{ padding: '10px 20px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            style={{ padding: '10px 24px', fontSize: '14px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            <Bell size={14} /> 
-            {permission === 'granted' ? 'Alerts Active' : 'Enable Alerts'}
+            <Bell size={16} /> 
+            {permission === 'granted' ? 'Alerts Active' : 'Enable Desktop Alerts'}
           </button>
-          
-          <button 
-            onClick={() => {
-              if (window.Registration) {
-                window.Registration.showNotification('LifeLink Simulation', {
-                  body: 'THIS IS A TEST: Emergency B+ request nearby.',
-                  icon: '/logo192.png',
-                  tag: 'test-push'
-                });
-              } else {
-                alert('Click "Enable Alerts" first!');
-              }
-            }}
-            className="btn-ghost" 
-            style={{ padding: '10px 20px', fontSize: '13px', opacity: 0.7 }}
-          >
-            Send Test Push
-          </button>
-          {pendingAlerts > 0 && (
-            <div className="badge badge-high" style={{ padding: '12px 24px', borderRadius: '32px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Bell size={14} /> {pendingAlerts} Urgent Requests
-            </div>
-          )}
-          <div className="blood-tag" style={{ border: '2px solid white' }}>{donor.blood_group}</div>
+          <div className="blood-tag" style={{ border: '2px solid white', width: '50px', height: '50px', fontSize: '20px' }}>{donor.blood_group}</div>
         </div>
       </header>
 
-      <div className="ui-panel" style={{ padding: '40px', marginBottom: '60px', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-app) 100%)' }}>
-        <div className="flex-between">
-          <div className="flex-center" style={{ gap: '32px' }}>
-             <div className="blood-tag" style={{ width: '80px', height: '80px', fontSize: '32px', borderRadius: '24px' }}>{donor.name[0]}</div>
-             <div>
-               <h2 style={{ fontSize: '24px', marginBottom: '4px' }}>{donor.name}</h2>
-               <div style={{ color: 'var(--text-muted)', display: 'flex', gap: '16px', fontSize: '15px' }}>
-                 <span className="flex-center" style={{ gap: '6px' }}><MapPin size={16} /> {donor.city}</span>
-                 <span className="flex-center" style={{ gap: '6px' }}><Phone size={16} /> {donor.phone}</span>
-               </div>
+      {/* Impact Section: Mirroring Mobile Hero UI */}
+      <div className="ui-panel" style={{ 
+        padding: '60px', 
+        marginBottom: '60px', 
+        background: 'linear-gradient(135deg, var(--accent-red) 0%, #FF6B8A 100%)',
+        borderRadius: '32px',
+        color: 'white',
+        position: 'relative',
+        overflow: 'hidden',
+        boxShadow: '0 20px 40px rgba(255,45,85,0.2)'
+      }}>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '0.1em', opacity: 0.8, marginBottom: '12px' }}>YOUR MISSION IMPACT</h2>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+              <span style={{ fontSize: '72px', fontWeight: 900 }}>{donor.total_donations || 0}</span>
+              <span style={{ fontSize: '24px', fontWeight: 700, opacity: 0.9 }}>Lives Saved</span>
+            </div>
+            <p style={{ marginTop: '24px', fontSize: '16px', fontWeight: 500, opacity: 0.9, maxWidth: '400px' }}>
+               You are an active part of the LifeLink emergency network in {donor.city}.
+            </p>
+          </div>
+          <div className="flex-center" style={{ gap: '60px' }}>
+             <div style={{ textAlign: 'center' }}>
+               <div style={{ fontSize: '32px', fontWeight: 800 }}>{donor.blood_group}</div>
+               <div style={{ fontSize: '12px', fontWeight: 700, opacity: 0.8 }}>BLOOD TYPE</div>
+             </div>
+             <div style={{ height: '60px', width: '1px', background: 'rgba(255,255,255,0.2)' }} />
+             <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '32px', fontWeight: 800 }}>{myResponses.length}</div>
+                <div style={{ fontSize: '12px', fontWeight: 700, opacity: 0.8 }}>ACTIVE ALERTS</div>
              </div>
           </div>
-          
-          <div style={{ textAlign: 'right' }}>
-            <p className="stat-label" style={{ marginBottom: '16px' }}>Network Visibility</p>
-            <div className="flex-center" style={{ gap: '16px', justifyContent: 'flex-end' }}>
-               <span style={{ fontSize: '15px', fontWeight: 700, color: donor.available ? 'var(--accent-green)' : 'var(--text-muted)' }}>
-                 {donor.available ? 'AVAILABLE' : 'OFFLINE'}
-               </span>
-               <div onClick={toggleAvailable} className={`toggle-switch ${donor.available ? 'active' : ''}`}>
-                 <div className="toggle-thumb" />
-               </div>
-            </div>
-          </div>
         </div>
+        {/* Decorative backdrop icon */}
+        <Heart size={300} style={{ position: 'absolute', right: '-40px', bottom: '-80px', opacity: 0.1, color: 'white' }} />
       </div>
 
       <div className="view-tabs">
         <button className={`tab-btn ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>
-          <Bell size={18} /> Emergency Alerts
+          <Bell size={18} /> Active Missions
         </button>
         <button className={`tab-btn ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')}>
-          <Navigation size={18} /> Emergency Map
+          <Navigation size={18} /> Mission Map
         </button>
         <button className={`tab-btn ${activeTab === 'directory' ? 'active' : ''}`} onClick={() => setActiveTab('directory')}>
           <Hospital size={18} /> Network Hospitals
@@ -249,13 +238,23 @@ export default function DonorDashboard({ user }) {
 
       {activeTab === 'alerts' && (
         <section className="fade-in">
-          <h2 style={{ fontSize: '24px', marginBottom: '32px' }}>Emergency Alerts</h2>
-          <div className="stream-container">
+          <div className="flex-between" style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '24px' }}>Active Mission Stream</h2>
+            <div className="flex-center" style={{ gap: '16px' }}>
+               <div className="flex-center" style={{ gap: '8px', fontSize: '13px', color: 'var(--text-muted)' }}>
+                  <span className="status-dot active"></span> Tracking Live
+               </div>
+               <button onClick={refetch} className="btn-ghost" style={{ padding: '8px 16px', fontSize: '12px' }}>Force Sync</button>
+            </div>
+          </div>
+          
+          <div className="stream-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: '20px' }}>
             {loading ? (
-               <div style={{ color: 'var(--text-muted)' }}>Scanning network frequency...</div>
+               <div style={{ color: 'var(--text-muted)' }}>Syncing mission frequencies...</div>
             ) : myResponses.length === 0 ? (
-               <div className="ui-panel flex-center" style={{ padding: '80px', borderStyle: 'dashed', background: 'transparent' }}>
-                 <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>No matching alerts in your area</p>
+               <div className="ui-panel flex-center" style={{ gridColumn: '1/-1', padding: '100px', borderStyle: 'dashed', background: 'transparent', flexDirection: 'column', gap: '20px' }}>
+                 <ShieldCheck size={48} strokeWidth={1} style={{ opacity: 0.3 }} />
+                 <p style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '18px' }}>No active emergencies requiring {donor.blood_group} in your sector.</p>
                </div>
             ) : (
               myResponses.map(({ response, request }) => (

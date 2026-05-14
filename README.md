@@ -27,14 +27,21 @@ LifeLink is a specialized monorepo designed for scale and security:
 ---
 
 ## 🚀 Getting Started
-### 1. Hospital Web
+
+### The Master Controller (One-Command Startup)
+LifeLink uses a unified startup script to launch both the web portal and the mobile app simultaneously, while automatically establishing a dynamic IP bridge for your QR codes.
+
+From the root `LifeLink` directory, simply run:
 ```bash
-cd hospital_web && npm start
+npm start
 ```
-### 2. Donor Mobile App
-```bash
-cd donor_app && npx expo start
-```
+*This will automatically launch the Hospital Web Portal (React) and the Donor Mobile App (Expo) in parallel.*
+
+### Environment Setup
+Before starting, ensure you have configured your environment variables using the provided templates:
+1. Copy `hospital_web/.env.example` to `hospital_web/.env`
+2. Copy `donor_app/.env.example` to `donor_app/.env`
+*(The `hospital_web/.env.local` file is generated automatically by the startup script for your IP bridge).*
 
 ---
 

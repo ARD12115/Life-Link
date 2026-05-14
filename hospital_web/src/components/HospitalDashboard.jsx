@@ -125,19 +125,19 @@ function NewRequestModal({ myHospital, onClose }) {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           <div className="form-field">
             <label className="field-label">Component</label>
-            <select className="text-input" value={form.component} onChange={e => setForm(f => ({ ...f, component: e.target.value }))}>
+            <select className="text-input" style={{ height: '52px' }} value={form.component} onChange={e => setForm(f => ({ ...f, component: e.target.value }))}>
               {COMPONENTS.map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
           <div className="form-field">
             <label className="field-label">Units (Gloved-Friendly)</label>
-            <div className="flex-center" style={{ gap: '12px', background: 'var(--bg-app)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border-soft)' }}>
-              <button onClick={() => setForm(f => ({ ...f, units_needed: Math.max(1, f.units_needed - 1) }))} className="btn-ghost" style={{ padding: '8px 20px', fontSize: '20px' }}>-</button>
-              <span style={{ fontSize: '20px', fontWeight: 800, minWidth: '40px', textAlign: 'center' }}>{form.units_needed}</span>
-              <button onClick={() => setForm(f => ({ ...f, units_needed: f.units_needed + 1 }))} className="btn-ghost" style={{ padding: '8px 20px', fontSize: '20px' }}>+</button>
+            <div className="flex-center" style={{ gap: '0', background: 'var(--bg-app)', padding: '2px', borderRadius: '12px', border: '1px solid var(--border-soft)', height: '52px' }}>
+              <button onClick={() => setForm(f => ({ ...f, units_needed: Math.max(1, f.units_needed - 1) }))} className="btn-ghost" style={{ flex: 1, height: '100%', fontSize: '20px' }}>-</button>
+              <span style={{ fontSize: '20px', fontWeight: 800, minWidth: '50px', textAlign: 'center' }}>{form.units_needed}</span>
+              <button onClick={() => setForm(f => ({ ...f, units_needed: f.units_needed + 1 }))} className="btn-ghost" style={{ flex: 1, height: '100%', fontSize: '20px' }}>+</button>
             </div>
           </div>
         </div>
