@@ -150,10 +150,20 @@ export default function LandingPage() {
           
           <div className="qr-card ui-panel" style={{ padding: '32px', textAlign: 'center', width: '280px', margin: '0 auto' }}>
              <div className="qr-placeholder" style={{ background: 'white', padding: '16px', borderRadius: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'center' }}>
-                <QRCodeCanvas value={expoUrl} size={150} level="H" />
+                {expoUrl && expoUrl !== 'exp://localhost:8081' ? (
+                  <QRCodeCanvas value={expoUrl} size={150} level="H" />
+                ) : (
+                  <div style={{ width: 150, height: 150, background: '#f5f5f7', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                     <Zap size={40} color="var(--accent-red)" style={{ opacity: 0.5 }} />
+                  </div>
+                )}
              </div>
-             <p style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>SCAN FOR EXPO GO</p>
-             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{expoUrl}</p>
+             <p style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text-main)' }}>
+                {expoUrl && expoUrl !== 'exp://localhost:8081' ? 'SCAN FOR EXPO GO' : 'BRIDGE READY'}
+             </p>
+             <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px', wordBreak: 'break-all' }}>
+                {expoUrl && expoUrl !== 'exp://localhost:8081' ? expoUrl : 'Waiting for network discovery...'}
+             </p>
           </div>
         </div>
       </section>
