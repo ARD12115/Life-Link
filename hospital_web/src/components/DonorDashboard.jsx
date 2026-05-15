@@ -87,7 +87,10 @@ export default function DonorDashboard({ user }) {
 
   useEffect(() => {
     async function loadDonorProfile() {
-      if (!user) return 
+      if (!user) {
+        setProfileLoading(false)
+        return 
+      }
       const { data } = await supabase.from('donors').select('*').eq('user_id', user.id).single()
       if (data) setDonor(data)
       setProfileLoading(false)
@@ -118,7 +121,16 @@ export default function DonorDashboard({ user }) {
           onSubmit={async (e) => {
             e.preventDefault()
             const fd = new FormData(e.target)
-            if (!user) return alert("Anonymous authentication failed. Please check console.")
+            
+            let currentUser = user;
+            // Handle anonymous sign-in for new visitors seamlessly
+            if (!currentUser) {
+              const { data, error } = await supabase.auth.signInAnonymously()
+              if (error) return alert("System error: Could not connect to network. Please try again.")
+              currentUser = data.session?.user
+            }
+
+            if (!currentUser) return alert("System error: Authentication failed.")
 
             // Capture coordinates if available
             let lat = null, lng = null;
@@ -132,8 +144,9 @@ export default function DonorDashboard({ user }) {
               console.warn("📡 Geolocation failed, proceeding with city only:", err);
             }
 
+            // Create donor record
             const { data } = await supabase.from('donors').insert([{ 
-              user_id: user.id, 
+              user_id: currentUser.id, 
               name: fd.get('name'), 
               blood_group: fd.get('blood_group'), 
               city: fd.get('city'), 
@@ -141,6 +154,7 @@ export default function DonorDashboard({ user }) {
               latitude: lat,
               longitude: lng
             }]).select().single()
+            
             if (data) setDonor(data)
           }}>
           <h1 style={{ marginBottom: '12px', fontSize: '32px' }}>Donor Registration</h1>

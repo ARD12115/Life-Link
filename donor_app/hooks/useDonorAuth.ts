@@ -104,5 +104,5 @@ export function useDonorAuth() {
     }
   }
 
-  return { user, donor, loading, signInAnonymously, completeOnboarding, fetchDonorProfile };
+  return { user, donor, role, loading, signInAnonymously, completeOnboarding, fetchDonorProfile };
 }
