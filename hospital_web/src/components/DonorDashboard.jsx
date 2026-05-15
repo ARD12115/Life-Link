@@ -126,7 +126,10 @@ export default function DonorDashboard({ user }) {
             // Handle anonymous sign-in for new visitors seamlessly
             if (!currentUser) {
               const { data, error } = await supabase.auth.signInAnonymously()
-              if (error) return alert("System error: Could not connect to network. Please try again.")
+              if (error) {
+                console.error("Anonymous Auth Error:", error)
+                return alert(`Authentication failed: ${error.message}. Please check if Anonymous Sign-In is enabled in Supabase.`)
+              }
               currentUser = data.session?.user
             }
 

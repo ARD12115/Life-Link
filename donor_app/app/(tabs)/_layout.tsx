@@ -44,16 +44,15 @@ export default function TabLayout() {
           headerTitle: 'Nearby Network',
         }}
       />
-      {role === 'admin' && (
-        <Tabs.Screen
-          name="admin"
-          options={{
-            title: 'Admin',
-            tabBarIcon: ({ color }) => <ShieldCheck size={24} color={color} />,
-            headerTitle: 'System Control',
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: 'Admin',
+          href: role === 'admin' ? '/admin' : null,
+          tabBarIcon: ({ color }) => <ShieldCheck size={24} color={color} />,
+          headerTitle: 'System Control',
+        }}
+      />
     </Tabs>
   );
 }

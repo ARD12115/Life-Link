@@ -121,7 +121,14 @@ export default function DonorDashboard() {
               disabled={submitting}
               onPress={async () => {
                 setSubmitting(true);
-                if (!user) await signInAnonymously();
+                if (!user) {
+                  const res = await signInAnonymously();
+                  if (res.error) {
+                    Alert.alert("Authentication Failed", `${res.error.message}\n\nPlease ensure Anonymous Sign-In is enabled in Supabase.`);
+                    setSubmitting(false);
+                    return;
+                  }
+                }
                 await completeOnboarding(form.name, form.bloodGroup, form.city, form.phone);
                 setSubmitting(false);
               }}
