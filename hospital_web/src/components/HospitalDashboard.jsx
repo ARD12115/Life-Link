@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { CardSkeleton } from './Skeleton'
+import toast from 'react-hot-toast'
 
 const BLOOD_GROUPS  = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
 const COMPONENTS    = ['Whole blood', 'Platelets', 'Plasma', 'RBC']
@@ -38,7 +39,7 @@ function timeAgo(ts) {
   return `${Math.floor(diff / 3600)}h ago`
 }
 
-function NewRequestModal({ myHospital, onClose }) {
+function NewRequestModal({ myHospital, onClose, refetch, mutateRequests }) {
   const { donors } = useDonors()
   const [form, setForm] = useState({
     hospital_id:  myHospital.id,
@@ -59,7 +60,8 @@ function NewRequestModal({ myHospital, onClose }) {
       .insert([{ 
         ...form, 
         units_needed: Number(form.units_needed),
-        delivery_point: form.delivery_point || 'General Admissions'
+        delivery_point: form.delivery_point || 'General Admissions',
+        status: 'open'
       }])
       .select().single()
 
@@ -91,6 +93,12 @@ function NewRequestModal({ myHospital, onClose }) {
           }
         }
       }
+      
+      // Optimistic UI Update: Instantly inject the new request
+      if (mutateRequests) {
+        mutateRequests(prev => [{ ...data, hospitals: myHospital, donor_responses: [] }, ...prev])
+      }
+      if (refetch) refetch(true)
       onClose()
     }
     setLoading(false)
@@ -174,7 +182,7 @@ function NewRequestModal({ myHospital, onClose }) {
 export default function HospitalDashboard({ user }) {
   const [myHospital, setMyHospital] = useState(null)
   const [profileLoading, setProfileLoading] = useState(true)
-  const { requests, loading } = useRequests()
+  const { requests, loading, refetch, mutateRequests } = useRequests()
   const { donors } = useDonors()
   const [showModal, setShowModal]   = useState(false)
   const [expandedId, setExpandedId] = useState(null)
@@ -207,7 +215,12 @@ export default function HospitalDashboard({ user }) {
       .eq('id', id)
       
     if (error) toast.error('Update failed')
-    else toast.success('Request updated')
+    else {
+      toast.success('Request updated')
+      // Optimistic Update
+      mutateRequests(prev => prev.map(r => r.id === id ? { ...r, status: newStatus, notes: receivedBy ? `Received by: ${receivedBy}` : r.notes } : r))
+      refetch(true)
+    }
   }
 
   const myRequests = useMemo(() => requests.filter(r => r.hospital_id === myHospital?.id), [requests, myHospital])
@@ -351,24 +364,26 @@ export default function HospitalDashboard({ user }) {
               </div>
             ) : (
               activeRequests.map(req => (
-              <div key={req.id} className={`ui-panel data-row ${expandedId === req.id ? 'active' : ''}`} onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}>
-                <div className="flex-center" style={{ gap: '24px' }}>
-                  <div className="blood-tag">{req.blood_group}</div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '18px' }}>{req.component}</div>
-                    <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      {req.units_needed} Units Required • {req.delivery_point ? `Deliver to: ${req.delivery_point}` : timeAgo(req.created_at)}
+              <div key={req.id} className={`ui-panel data-row ${expandedId === req.id ? 'active' : ''}`} onClick={() => setExpandedId(expandedId === req.id ? null : req.id)} style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                <div className="flex-between" style={{ width: '100%' }}>
+                  <div className="flex-center" style={{ gap: '24px' }}>
+                    <div className="blood-tag">{req.blood_group}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '18px' }}>{req.component}</div>
+                      <div style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        {req.units_needed} Units Required • {req.delivery_point ? `Deliver to: ${req.delivery_point}` : timeAgo(req.created_at)}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex-center" style={{ gap: '16px' }}>
-                  <span className={`badge ${URGENCY_BADGES[req.urgency]}`}>{req.urgency}</span>
-                  <div className="badge badge-low" style={{ background: 'var(--bg-app)' }}>{STATUS_LABELS[req.status]}</div>
-                  {expandedId === req.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  <div className="flex-center" style={{ gap: '16px' }}>
+                    <span className={`badge ${URGENCY_BADGES[req.urgency]}`}>{req.urgency}</span>
+                    <div className="badge badge-low" style={{ background: 'var(--bg-app)' }}>{STATUS_LABELS[req.status]}</div>
+                    {expandedId === req.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  </div>
                 </div>
 
                 {expandedId === req.id && (
-                  <div style={{ width: '100%', position: 'absolute', top: '100%', left: 0, padding: '32px', background: 'var(--bg-card)', borderTop: '1px solid var(--border-soft)', zIndex: 10 }}>
+                  <div style={{ width: '100%', marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border-soft)' }}>
                      {req.notes && <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginBottom: '32px', fontStyle: 'italic' }}>"{req.notes}"</p>}
                      <h4 style={{ marginBottom: '16px', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Donor Response Network</h4>
                      {req.donor_responses?.length > 0 ? (
@@ -388,6 +403,19 @@ export default function HospitalDashboard({ user }) {
                           ))}
                         </div>
                      ) : <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Waiting for donor responses...</p>}
+                      <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
+                        {req.status === 'open' && (
+                          <button className="btn-solid" style={{ background: 'var(--accent-orange)' }} onClick={(e) => { e.stopPropagation(); updateStatus(req.id, 'in_progress'); }}>
+                            Mark In Progress
+                          </button>
+                        )}
+                        {req.status !== 'closed' && (
+                          <button className="btn-solid" style={{ background: 'var(--accent-green)' }} onClick={(e) => { e.stopPropagation(); updateStatus(req.id, 'closed'); }}>
+                            Complete Request
+                          </button>
+                        )}
+                        <button className="btn-ghost" onClick={(e) => { e.stopPropagation(); updateStatus(req.id, 'cancelled'); }}>Cancel Request</button>
+                      </div>
                   </div>
                 )}
               </div>
@@ -507,7 +535,7 @@ export default function HospitalDashboard({ user }) {
         </section>
       )}
 
-      {showModal && <NewRequestModal myHospital={myHospital} onClose={() => setShowModal(false)} />}
+      {showModal && <NewRequestModal myHospital={myHospital} onClose={() => setShowModal(false)} refetch={refetch} mutateRequests={mutateRequests} />}
     </div>
   )
 }

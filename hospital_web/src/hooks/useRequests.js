@@ -10,10 +10,10 @@ export function useRequests() {
   const isMounted                 = useRef(true)
   const lastFetchTime             = useRef(0)
 
-  const fetchRequests = useCallback(async () => {
-    // Throttle: max once per 1s to prevent network storms
+  const fetchRequests = useCallback(async (force = false) => {
+    // Throttle: max once per 1s to prevent network storms, unless forced
     const now = Date.now()
-    if (now - lastFetchTime.current < 1000) return
+    if (!force && now - lastFetchTime.current < 1000) return
     lastFetchTime.current = now
 
     try {
@@ -61,7 +61,7 @@ export function useRequests() {
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'blood_requests' },
         (payload) => {
-          if (payload.eventType === 'INSERT') fetchRequests() // Refetch for complex joins on new rows
+          if (payload.eventType === 'INSERT') fetchRequests(true) // Force refetch for complex joins on new rows
           if (payload.eventType === 'UPDATE') {
             setRequests(prev => prev.map(r => r.id === payload.new.id ? { ...r, ...payload.new } : r))
           }
@@ -72,7 +72,7 @@ export function useRequests() {
       )
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'donor_responses' },
-        fetchRequests // Responses have deep joins, easier to refetch
+        () => fetchRequests(true) // Force refetch on response updates
       )
       .subscribe()
 
@@ -82,5 +82,5 @@ export function useRequests() {
     }
   }, [fetchRequests])
 
-  return { requests, loading, error, refetch: fetchRequests }
+  return { requests, loading, error, refetch: fetchRequests, mutateRequests: setRequests }
 }
