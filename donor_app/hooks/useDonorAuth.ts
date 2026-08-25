@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import * as SecureStore from 'expo-secure-store';
+import type { Tables, TablesInsert } from '../types/supabase';
+
+type Profile = Tables<'profiles'>
+type Donor = Tables<'donors'>
+type DonorInsert = TablesInsert<'donors'>
+type ProfileInsert = TablesInsert<'profiles'>
 
 export function useDonorAuth() {
-  const [user, setUser] = useState<any>(null);
-  const [donor, setDonor] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null); // Supabase User type
+  const [donor, setDonor] = useState<Donor | null>(null);
+  const [role, setRole] = useState<Profile['role'] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,17 +68,20 @@ export function useDonorAuth() {
   }
 
   async function completeOnboarding(name: string, bloodGroup: string, city: string, phone: string) {
-    if (!user?.id) {
-      console.error('Onboarding blocked: No user ID');
+    // Get current session to avoid stale closure
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      console.error('Onboarding blocked: No authenticated user');
       return { error: 'No authenticated user' };
     }
+    const userId = session.user.id;
 
     try {
       // 1. Create Profile (Atomic check)
       const { error: profileError } = await supabase
         .from('profiles')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           role: 'donor',
           display_name: name,
           phone: phone
@@ -87,7 +96,7 @@ export function useDonorAuth() {
       const { data: donorData, error: donorError } = await supabase
         .from('donors')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           name,
           blood_group: bloodGroup,
           city,

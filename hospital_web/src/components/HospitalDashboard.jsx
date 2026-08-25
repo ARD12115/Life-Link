@@ -54,6 +54,11 @@ function NewRequestModal({ myHospital, onClose, refetch, mutateRequests }) {
 
   const handleSubmit = async () => {
     if (!form.hospital_id) return
+    if (!myHospital.is_verified) {
+      toast.error('Hospital must be verified to create emergency requests')
+      setLoading(false)
+      return
+    }
     setLoading(true)
     const { data, error } = await supabase
       .from('blood_requests')
@@ -483,11 +488,8 @@ export default function HospitalDashboard({ user }) {
                     </td>
                     <td style={{ padding: '16px 24px', color: 'var(--text-muted)', fontSize: '14px' }}>{donor.city}</td>
                     <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                       {donor.phone && (
-                         <a href={`tel:${donor.phone}`} className="btn-solid" style={{ padding: '8px 16px', fontSize: '12px', textDecoration: 'none' }}>
-                            <Phone size={14} /> CALL
-                         </a>
-                       )}
+                       {/* Phone only shown after donor responds to THIS hospital's request */}
+                       <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Contact on response</span>
                     </td>
                   </tr>
                 ))}

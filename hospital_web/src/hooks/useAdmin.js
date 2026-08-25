@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { logger } from '../lib/logger'
 
 export function useAdmin(user) {
   const [isAdmin, setIsAdmin] = useState(false)
@@ -26,7 +27,7 @@ export function useAdmin(user) {
           setIsAdmin(false)
         }
       } catch (err) {
-        console.error('Error checking admin status:', err)
+        logger.error('Error checking admin status', { error: err instanceof Error ? err.message : 'Unknown' })
         setIsAdmin(false)
       } finally {
         setLoading(false)

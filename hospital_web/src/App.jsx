@@ -5,6 +5,7 @@ import DonorDashboard    from './components/DonorDashboard'
 import AdminDashboard    from './components/AdminDashboard'
 import Auth              from './components/Auth'
 import LandingPage       from './components/LandingPage'
+import ErrorBoundary     from './components/ErrorBoundary'
 import { useTheme }      from './context/ThemeContext'
 import { useAdmin }      from './hooks/useAdmin'
 import { supabase }      from './lib/supabase'
@@ -96,29 +97,31 @@ export default function App() {
   if (loading) return null
 
   return (
-    <BrowserRouter>
-      <AppLayout session={session} isAdmin={isAdmin}>
-        <Routes>
-          <Route path="/" element={
-            session ? <Navigate to={isAdmin ? "/admin" : "/hospital"} replace /> : <LandingPage />
-          } />
-          
-          {/* Hospital flow: Show Auth if not logged in, otherwise check role */}
-          <Route path="/hospital" element={
-            !session ? <Auth /> : (!isAdmin ? <HospitalDashboard user={session.user} /> : <Navigate to="/admin" replace />)
-          } />
-          
-          {/* Donor flow: Handles its own session */}
-          <Route path="/donor" element={<DonorDashboard user={session?.user || null} />} />
-
-          {/* Admin flow: Show Auth if not logged in, otherwise check admin status */}
-          <Route path="/admin" element={
-            !session ? <Auth /> : (isAdmin ? <AdminDashboard user={session.user} /> : <Navigate to="/hospital" replace />)
-          } />
-          
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AppLayout>
-    </BrowserRouter>
-  )
+      <BrowserRouter>
+        <AppLayout session={session} isAdmin={isAdmin}>
+          <ErrorBoundary>
+            <Routes>
+              <Route path="/" element={
+                session ? <Navigate to={isAdmin ? "/admin" : "/hospital"} replace /> : <LandingPage />
+              } />
+            
+              {/* Hospital flow: Show Auth if not logged in, otherwise check role */}
+              <Route path="/hospital" element={
+                !session ? <Auth /> : (!isAdmin ? <HospitalDashboard user={session.user} /> : <Navigate to="/admin" replace />)
+              } />
+            
+              {/* Donor flow: Handles its own session */}
+              <Route path="/donor" element={<DonorDashboard user={session?.user || null} />} />
+            
+              {/* Admin flow: Show Auth if not logged in, otherwise check admin status */}
+              <Route path="/admin" element={
+                !session ? <Auth /> : (isAdmin ? <AdminDashboard user={session.user} /> : <Navigate to="/hospital" replace />)
+              } />
+            
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ErrorBoundary>
+        </AppLayout>
+      </BrowserRouter>
+    )
 }

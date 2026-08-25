@@ -1,6 +1,7 @@
 // src/hooks/useNotifications.js
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { logger } from '../lib/logger'
 
 const VAPID_PUBLIC_KEY = process.env.REACT_APP_VAPID_PUBLIC_KEY
 
@@ -25,7 +26,7 @@ export function useNotifications(user) {
 
   const subscribe = useCallback(async () => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('Push messaging is not supported')
+      logger.warn('Push messaging is not supported')
       return
     }
 
@@ -60,14 +61,14 @@ export function useNotifications(user) {
             user_id: user.id,
             subscription: subJson
           }])
-          console.log('✅ Push subscription saved to cloud')
+          logger.info('Push subscription saved to cloud')
         }
 
         setSubscription(currentSubscription)
-        console.log('✅ Push notification service active')
+        logger.info('Push notification service active')
       }
     } catch (error) {
-      console.error('❌ Failed to subscribe:', error)
+      logger.error('Failed to subscribe', { error: error instanceof Error ? error.message : 'Unknown' })
     }
   }, [user])
 

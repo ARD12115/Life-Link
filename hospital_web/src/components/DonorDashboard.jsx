@@ -12,9 +12,9 @@ const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
 
 function timeAgo(ts) {
   const diff = Math.floor((Date.now() - new Date(ts)) / 1000)
-  if (diff < 60) return `${diff}s ago`
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 60) return diff + 's ago'
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago'
+  return Math.floor(diff / 3600) + 'h ago'
 }
 
 function AlertCard({ response, request, onRespond }) {
@@ -42,7 +42,7 @@ function AlertCard({ response, request, onRespond }) {
   const isConfirmed = response.status === 'confirmed'
 
   return (
-    <div className={`ui-panel data-row ${isConfirmed ? 'active' : ''}`} style={{ padding: '32px' }}>
+    <div className={'ui-panel data-row ' + (isConfirmed ? 'active' : '')} style={{ padding: '32px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
         <div className="flex-center" style={{ gap: '24px' }}>
           <div className="blood-tag">{request.blood_group}</div>
@@ -55,9 +55,9 @@ function AlertCard({ response, request, onRespond }) {
             </div>
           </div>
         </div>
-        
+       
         <div className="flex-center" style={{ gap: '20px' }}>
-           <span className={`badge ${request.urgency === 'Critical' ? 'badge-high' : 'badge-mid'}`}>{request.urgency}</span>
+           <span className={'badge ' + (request.urgency === 'Critical' ? 'badge-high' : 'badge-mid')}>{request.urgency}</span>
            {isOpen && (
              <div style={{ display: 'flex', gap: '12px' }}>
                <button onClick={() => respond('declined')} disabled={loading} className="btn-ghost" style={{ padding: '10px 20px' }}>Decline</button>
@@ -117,7 +117,8 @@ export default function DonorDashboard({ user }) {
   if (!donor) {
     return (
       <div className="flex-center" style={{ minHeight: '90vh', justifyContent: 'center' }}>
-        <form className="ui-panel fade-in" style={{ padding: '60px', maxWidth: '500px', width: '90%' }} 
+        <div className="auth-form-container">
+          <form className="auth-form-panel fade-in" style={{ padding: '60px', maxWidth: '500px', width: '90%' }} 
           onSubmit={async (e) => {
             e.preventDefault()
             const fd = new FormData(e.target)
@@ -128,7 +129,7 @@ export default function DonorDashboard({ user }) {
               const { data, error } = await supabase.auth.signInAnonymously()
               if (error) {
                 console.error("Anonymous Auth Error:", error)
-                return alert(`Authentication failed: ${error.message}. Please check if Anonymous Sign-In is enabled in Supabase.`)
+                return alert('Authentication failed: ' + error.message + '. Please check if Anonymous Sign-In is enabled in Supabase.')
               }
               currentUser = data.session?.user
             }
@@ -144,7 +145,7 @@ export default function DonorDashboard({ user }) {
               lat = pos.coords.latitude;
               lng = pos.coords.longitude;
             } catch (err) {
-              console.warn("📡 Geolocation failed, proceeding with city only:", err);
+              console.warn("Geolocation failed, proceeding with city only:", err);
             }
 
             // Create donor record
@@ -157,7 +158,6 @@ export default function DonorDashboard({ user }) {
               latitude: lat,
               longitude: lng
             }]).select().single()
-            
             if (data) setDonor(data)
           }}>
           <h1 style={{ marginBottom: '12px', fontSize: '32px' }}>Donor Registration</h1>
@@ -193,7 +193,7 @@ export default function DonorDashboard({ user }) {
         <div className="flex-center" style={{ gap: '12px' }}>
           <button 
             onClick={subscribe} 
-            className={`btn-${permission === 'granted' ? 'solid' : 'ghost'}`} 
+            className={'btn-' + (permission === 'granted' ? 'solid' : 'ghost')} 
             style={{ padding: '10px 24px', fontSize: '14px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <Bell size={16} /> 
@@ -242,13 +242,13 @@ export default function DonorDashboard({ user }) {
       </div>
 
       <div className="view-tabs">
-        <button className={`tab-btn ${activeTab === 'alerts' ? 'active' : ''}`} onClick={() => setActiveTab('alerts')}>
+        <button className={'tab-btn ' + (activeTab === 'alerts' ? 'active' : '')} onClick={() => setActiveTab('alerts')}>
           <Bell size={18} /> Active Missions
         </button>
-        <button className={`tab-btn ${activeTab === 'map' ? 'active' : ''}`} onClick={() => setActiveTab('map')}>
+        <button className={'tab-btn ' + (activeTab === 'map' ? 'active' : '')} onClick={() => setActiveTab('map')}>
           <Navigation size={18} /> Mission Map
         </button>
-        <button className={`tab-btn ${activeTab === 'directory' ? 'active' : ''}`} onClick={() => setActiveTab('directory')}>
+        <button className={'tab-btn ' + (activeTab === 'directory' ? 'active' : '')} onClick={() => setActiveTab('directory')}>
           <Hospital size={18} /> Network Hospitals
         </button>
       </div>
@@ -264,7 +264,7 @@ export default function DonorDashboard({ user }) {
                <button onClick={refetch} className="btn-ghost" style={{ padding: '8px 16px', fontSize: '12px' }}>Force Sync</button>
             </div>
           </div>
-          
+         
           <div className="stream-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: '20px' }}>
             {loading ? (
                <div style={{ color: 'var(--text-muted)' }}>Syncing mission frequencies...</div>
@@ -298,7 +298,7 @@ export default function DonorDashboard({ user }) {
             <h2 style={{ fontSize: '24px' }}>Registered Hospitals</h2>
             <p style={{ color: 'var(--text-muted)', marginTop: '4px' }}>Medical facilities connected to the LifeLink network.</p>
           </div>
-          
+         
           <div className="master-detail-container">
             <div className="master-list">
               {hospitals.length === 0 ? (
@@ -309,7 +309,7 @@ export default function DonorDashboard({ user }) {
                 hospitals.map(hospital => (
                   <div 
                     key={hospital.id} 
-                    className={`ui-panel directory-card master-item ${selectedHospital?.id === hospital.id ? 'active' : ''}`}
+                    className={'ui-panel directory-card master-item ' + (selectedHospital?.id === hospital.id ? 'active' : '')}
                     onClick={() => setSelectedHospital(hospital)}
                     style={{ cursor: 'pointer', padding: '16px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}
                   >
@@ -326,7 +326,7 @@ export default function DonorDashboard({ user }) {
                 ))
               )}
             </div>
-            
+           
             <div className="detail-pane ui-panel" style={{ padding: '32px', minHeight: '400px' }}>
               {selectedHospital ? (
                 <div className="fade-in">
@@ -347,7 +347,7 @@ export default function DonorDashboard({ user }) {
                       Verified
                     </div>
                   </div>
-                  
+                 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
                     <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '20px' }}>
                       <div style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '8px' }}>Location</div>
@@ -358,7 +358,7 @@ export default function DonorDashboard({ user }) {
                       <div className="flex-center" style={{ gap: '8px', fontSize: '16px', fontWeight: 500 }}><Phone size={18} /> {selectedHospital.phone || 'N/A'}</div>
                     </div>
                   </div>
-                  
+                 
                   <div className="ui-panel" style={{ background: 'var(--bg-app)', padding: '24px' }}>
                     <div className="flex-between" style={{ paddingBottom: '16px', borderBottom: '1px solid var(--border-soft)', marginBottom: '16px' }}>
                       <span style={{ color: 'var(--text-muted)' }}>Contact Person</span>

@@ -1,37 +1,67 @@
-import * as SecureStore from 'expo-secure-store';
 import { createClient } from '@supabase/supabase-js';
-import { AppState } from 'react-native';
+import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
-// Custom storage adapter for hardware-level security
-const ExpoSecureStoreAdapter = {
-  getItem: (key: string) => {
-    return SecureStore.getItemAsync(key);
-  },
-  setItem: (key: string, value: string) => {
-    return SecureStore.setItemAsync(key, value);
-  },
-  removeItem: (key: string) => {
-    return SecureStore.deleteItemAsync(key);
-  },
+// Platform-specific storage adapter
+const createStorageAdapter = () => {
+  if (Platform.OS === 'web') {
+    // Web: use localStorage with JSON serialization
+    return {
+      getItem: async (key: string) => {
+        try {
+          const value = localStorage.getItem(key);
+          return value;
+        } catch {
+          return null;
+        }
+      },
+      setItem: async (key: string, value: string) => {
+        try {
+          localStorage.setItem(key, value);
+        } catch {
+          // Ignore quota exceeded, etc.
+        }
+      },
+      removeItem: async (key: string) => {
+        try {
+          localStorage.removeItem(key);
+        } catch {
+          // Ignore
+        }
+      },
+    };
+  }
+
+  // Native: use Expo SecureStore (hardware-encrypted)
+  return {
+    getItem: (key: string) => SecureStore.getItemAsync(key),
+    setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
+    removeItem: (key: string) => SecureStore.deleteItemAsync(key),
+  };
 };
+
+const storageAdapter = createStorageAdapter();
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_PUBLISHABLE_KEY;
 
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
   auth: {
-    storage: ExpoSecureStoreAdapter as any,
+    storage: storageAdapter,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
   },
 });
 
-// Optimization: Tell Supabase when the app goes into the background
-AppState.addEventListener('change', (state) => {
-  if (state === 'active') {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
+// Optimization: Tell Supabase when the app goes into the background (native only)
+if (Platform.OS !== 'web') {
+  const { AppState } = require('react-native');
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh();
+    } else {
+      supabase.auth.stopAutoRefresh();
+    }
+  });
+}

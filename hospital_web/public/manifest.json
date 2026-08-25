@@ -1,0 +1,52 @@
+{
+  "name": "LifeLink — Emergency Blood Network",
+  "short_name": "LifeLink",
+  "description": "Real-time emergency blood donor matching platform for hospitals and donors",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#ff2d55",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["medical", "health", "emergency"],
+  "icons": [
+    {
+      "src": "/favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Donor Hub",
+      "short_name": "Donor",
+      "description": "View emergency blood requests",
+      "url": "/donor",
+      "icons": [{ "src": "/favicon-32.png", "sizes": "32x32" }]
+    },
+    {
+      "name": "Hospital Dashboard",
+      "short_name": "Hospital",
+      "description": "Manage blood requests",
+      "url": "/hospital",
+      "icons": [{ "src": "/favicon-32.png", "sizes": "32x32" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "related_applications": []
+}

@@ -1,12 +1,22 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import Map, { Marker, NavigationControl, Popup } from 'react-map-gl/maplibre'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { MapPin, Hospital, Activity, Phone, Clock, Droplets } from 'lucide-react'
 
-// Free Tile Provider (No key required)
+// Free Tile Provider (No key required) - Using OSM CartoDB Dark Matter
 const MAP_STYLE = {
   version: 8,
   sources: {
+    'osm': {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    },
     'carto-dark': {
       type: 'raster',
       tiles: [
@@ -32,6 +42,8 @@ const MAP_STYLE = {
 
 export default function EmergencyMap({ donors = [], hospitals = [], requests = [], donorView = false }) {
   const [selectedEntity, setSelectedEntity] = useState(null)
+  const mapContainerRef = useRef(null)
+  const mapRef = useRef(null)
   
   // Anonymize donor locations for donorView to protect privacy
   const processedDonors = useMemo(() => {
@@ -50,6 +62,29 @@ export default function EmergencyMap({ donors = [], hospitals = [], requests = [
     zoom: 12
   })
 
+  // Fit bounds to show all entities when data changes
+  useEffect(() => {
+    if (!mapRef.current || (!hospitals.length && !donors.length)) return
+    
+    const coords = [
+      ...hospitals.filter(h => h.latitude && h.longitude).map(h => [h.longitude, h.latitude]),
+      ...donors.filter(d => d.latitude && d.longitude).map(d => [d.longitude, d.latitude])
+    ]
+    
+    if (coords.length > 0 && mapRef.current) {
+      try {
+        // Calculate bounds
+        const bounds = coords.reduce((b, coord) => {
+          return b.extend(coord)
+        }, new (window.maplibregl || window.mapboxgl).LngLatBounds(coords[0], coords[0]))
+        
+        mapRef.current.fitBounds(bounds, { padding: 50, maxZoom: 14 })
+      } catch (e) {
+        console.warn('Could not fit bounds:', e)
+      }
+    }
+  }, [hospitals, donors])
+
   // Filter active emergency requests for pulsing effects
   const activeEmergencies = useMemo(() => 
     requests.filter(r => (r.urgency === 'Critical' || r.urgency === 'Urgent') && r.status === 'open'),
@@ -59,8 +94,10 @@ export default function EmergencyMap({ donors = [], hospitals = [], requests = [
   return (
     <div className="map-container" style={{ height: '500px', width: '100%', borderRadius: '24px', overflow: 'hidden', border: '1px solid var(--border-soft)', position: 'relative' }}>
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
+        onLoad={e => { mapRef.current = e.target }}
         mapStyle={MAP_STYLE}
         style={{ width: '100%', height: '100%' }}
       >
@@ -78,7 +115,7 @@ export default function EmergencyMap({ donors = [], hospitals = [], requests = [
               longitude={hospital.longitude}
               onClick={e => {
                 e.originalEvent.stopPropagation()
-                setSelectedEntity({ ...hospital, type: 'hospital', hasEmergency })
+                setSelectedEntity({ ...hospital, type: 'hospital', hasEmergency, facility_name: hospital.name })
               }}
             >
               <div style={{ cursor: 'pointer', position: 'relative' }}>
@@ -191,7 +228,8 @@ export default function EmergencyMap({ donors = [], hospitals = [], requests = [
         fontSize: '12px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px'
+        gap: '8px',
+        zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '12px', height: '12px', backgroundColor: 'var(--accent-red)', borderRadius: '3px' }} />

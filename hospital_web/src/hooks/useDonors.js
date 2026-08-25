@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { logger } from '../lib/logger'
 
 export function useDonors() {
   const [donors, setDonors]   = useState([])
@@ -11,9 +12,11 @@ export function useDonors() {
 
   const fetchDonors = useCallback(async (filterGroup = null) => {
     try {
+      // Only select columns allowed by RLS policy for hospitals
+      // Phone, latitude, longitude are excluded per policy
       let query = supabase
         .from('donors')
-        .select('*')
+        .select('id, name, blood_group, city, available, created_at')
         .order('available', { ascending: false })
         .order('name')
         .limit(50)
@@ -27,7 +30,7 @@ export function useDonors() {
       if (!isMounted.current) return
 
       if (error) {
-        console.error('Donors fetch error:', error)
+        logger.error('Donors fetch error', { error: error.message, table: 'donors' })
         setError(error.message)
       } else {
         setError(null)
@@ -35,9 +38,9 @@ export function useDonors() {
       }
       setLoading(false)
     } catch (err) {
-      console.error('Donors fetch exception:', err)
+      logger.error('Donors fetch exception', { error: err instanceof Error ? err.message : 'Unknown' })
       if (isMounted.current) {
-        setError(err.message)
+        setError(err instanceof Error ? err.message : 'Unknown error')
         setLoading(false)
       }
     }
@@ -88,6 +91,7 @@ export function useHospitals() {
       .then(({ data, error }) => {
         if (!isMounted) return
         if (!error) setHospitals(data || [])
+        else logger.error('Hospitals fetch error', { error: error.message, table: 'hospitals' })
         setLoading(false)
       })
     return () => { isMounted = false }
