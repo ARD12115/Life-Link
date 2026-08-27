@@ -1,19 +1,15 @@
-// src/hooks/useDonors.js
+// src/hooks/useDonors.js - Optimized with query client and fixed phone exposure
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { logger } from '../lib/logger'
+import { useSupabaseQuery, invalidateQuery } from '../lib/queryClient'
 
 export function useDonors() {
-  const [donors, setDonors]   = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
-  const isMounted             = useRef(true)
-
-  const fetchDonors = useCallback(async (filterGroup = null) => {
-    try {
-      // Only select columns allowed by RLS policy for hospitals
-      // Phone, latitude, longitude are excluded per policy
+  // Use query client for caching with explicit column selection (NO phone/coords)
+  const { data: donors, loading, error, refetch } = useSupabaseQuery(
+    'donors',
+    async (filterGroup = null) => {
       let query = supabase
         .from('donors')
         .select('id, name, blood_group, city, available, created_at')
@@ -26,76 +22,78 @@ export function useDonors() {
       }
 
       const { data, error } = await query
-
-      if (!isMounted.current) return
-
-      if (error) {
-        logger.error('Donors fetch error', { error: error.message, table: 'donors' })
-        setError(error.message)
-      } else {
-        setError(null)
-        setDonors(data || [])
-      }
-      setLoading(false)
-    } catch (err) {
-      logger.error('Donors fetch exception', { error: err instanceof Error ? err.message : 'Unknown' })
-      if (isMounted.current) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
-        setLoading(false)
-      }
+      return { data, error }
+    },
+    {
+      staleTime: 60000, // 1 minute
+      cacheTime: 300000 // 5 minutes
     }
-  }, [])
+  )
 
+  // Realtime subscription with memoized channel
   useEffect(() => {
-    isMounted.current = true
-    fetchDonors()
-
-    // Incremental realtime updates — avoids full re-fetch on every change
     const channelName = `donors_realtime_${Math.random().toString(36).substring(7)}`
-    const channel = supabase
-      .channel(channelName)
+    const channelRef = supabase.channel(channelName)
+
+    channelRef
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'donors' },
         (payload) => {
           if (!isMounted.current) return
+          
           if (payload.eventType === 'INSERT') {
-            setDonors(prev => [...prev, payload.new].sort((a, b) => a.name.localeCompare(b.name)))
+            // Force refetch to maintain proper ordering and limit
+            invalidateQuery('donors')
+            refetch(true)
           } else if (payload.eventType === 'UPDATE') {
-            setDonors(prev => prev.map(d => d.id === payload.new.id ? payload.new : d))
+            // Check if updated donor should be in our current filtered list
+            // For simplicity, just refetch to ensure consistency
+            invalidateQuery('donors')
+            refetch(true)
           } else if (payload.eventType === 'DELETE') {
-            setDonors(prev => prev.filter(d => d.id !== payload.old.id))
+            invalidateQuery('donors')
+            refetch(true)
           }
         }
       )
       .subscribe()
 
     return () => {
-      isMounted.current = false
-      supabase.removeChannel(channel)
+      supabase.removeChannel(channelRef)
     }
-  }, [fetchDonors])
+  }, [refetch])
 
-  return { donors, loading, error, refetch: fetchDonors }
+  // Filter function for components
+  const getFilteredDonors = useCallback((filterGroup = null) => {
+    if (!donors) return []
+    if (!filterGroup || filterGroup === 'All Blood Groups') return donors
+    return donors.filter(d => d.blood_group === filterGroup)
+  }, [donors])
+
+  return { 
+    donors: donors || [], 
+    loading, 
+    error, 
+    refetch,
+    getFilteredDonors
+  }
 }
 
 export function useHospitals() {
-  const [hospitals, setHospitals] = useState([])
-  const [loading, setLoading]     = useState(true)
+  const { data: hospitals, loading, error, refetch } = useSupabaseQuery(
+    'hospitals',
+    async () => {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('id, name, city, contact_person, phone, latitude, longitude, is_verified')
+        .order('name')
+      return { data, error }
+    },
+    {
+      staleTime: 300000, // 5 minutes
+      cacheTime: 600000 // 10 minutes
+    }
+  )
 
-  useEffect(() => {
-    let isMounted = true
-    supabase
-      .from('hospitals')
-      .select('*')
-      .order('name')
-      .then(({ data, error }) => {
-        if (!isMounted) return
-        if (!error) setHospitals(data || [])
-        else logger.error('Hospitals fetch error', { error: error.message, table: 'hospitals' })
-        setLoading(false)
-      })
-    return () => { isMounted = false }
-  }, [])
-
-  return { hospitals, loading }
+  return { hospitals: hospitals || [], loading, error, refetch }
 }

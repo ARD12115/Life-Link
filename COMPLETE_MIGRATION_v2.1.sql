@@ -93,19 +93,38 @@ CREATE INDEX IF NOT EXISTS idx_hospitals_directory
 -- SECTION 3: RLS POLICY FIXES (Column-level security & security)
 -- ============================================================
 
--- 3.1 Remove old/insecure donor policies
-DROP POLICY IF EXISTS "hospitals_read_basic_donors" ON donors;
-DROP POLICY IF EXISTS "hospitals_read_donors" ON donors;
-DROP POLICY IF EXISTS "allow public read donors" ON donors;
-DROP POLICY IF EXISTS "donors_owner_access" ON donors;
-DROP POLICY IF EXISTS "donors_owner_manage" ON donors;
-DROP POLICY IF EXISTS "donors_owner_update" ON donors;
-DROP POLICY IF EXISTS "donors_owner_delete" ON donors;
-DROP POLICY IF EXISTS "donors_owner_insert" ON donors;
+-- Use DO blocks to make policy changes idempotent and handle existing policies gracefully
 
--- 3.2 Create secure donor policy (hospitals see ONLY basic columns via explicit SELECT)
--- Note: Column restriction is enforced by application using explicit .select('id,name,blood_group,city,available')
--- RLS policy restricts WHO can read (only hospitals with role='hospital')
+-- ============================================================
+-- 3.1 Donors table policies
+-- ============================================================
+DO $$
+BEGIN
+    -- Drop old/insecure donor policies
+    DROP POLICY IF EXISTS "hospitals_read_basic_donors" ON donors;
+    DROP POLICY IF EXISTS "hospitals_read_donors" ON donors;
+    DROP POLICY IF EXISTS "allow public read donors" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_access" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_manage" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_select" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_insert" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_update" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_delete" ON donors;
+    DROP POLICY IF EXISTS "allow user select donors" ON donors;
+    DROP POLICY IF EXISTS "allow user insert donors" ON donors;
+    DROP POLICY IF EXISTS "allow user update donors" ON donors;
+    DROP POLICY IF EXISTS "allow user delete donors" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_access" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_manage" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_update" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_delete" ON donors;
+    DROP POLICY IF EXISTS "donors_owner_insert" ON donors;
+EXCEPTION WHEN OTHERS THEN
+    -- Ignore errors from dropping non-existent policies
+    NULL;
+END $$;
+
+-- Create secure donor policies using init-plan pattern (select auth.uid())
 CREATE POLICY "hospitals_read_basic_donors" ON donors 
   FOR SELECT USING (
     EXISTS (
@@ -115,7 +134,6 @@ CREATE POLICY "hospitals_read_basic_donors" ON donors
     )
   );
 
--- 3.3 Donor owner policies (consolidated - single policy per operation)
 CREATE POLICY "donors_owner_select" ON donors 
   FOR SELECT USING (user_id = (select auth.uid()));
 
@@ -129,21 +147,31 @@ CREATE POLICY "donors_owner_update" ON donors
 CREATE POLICY "donors_owner_delete" ON donors 
   FOR DELETE USING (user_id = (select auth.uid()));
 
--- 3.3 Remove old/insecure hospital policies
-DROP POLICY IF EXISTS "hospitals_owner_access" ON hospitals;
-DROP POLICY IF EXISTS "hospitals_owner_manage" ON hospitals;
-DROP POLICY IF EXISTS "hospitals_owner_insert" ON hospitals;
-DROP POLICY IF EXISTS "hospitals_owner_update" ON hospitals;
-DROP POLICY IF EXISTS "hospitals_owner_delete" ON hospitals;
-DROP POLICY IF EXISTS "hospitals_owner_select" ON hospitals;
-DROP POLICY IF EXISTS "public_hospitals_view" ON hospitals;
-DROP POLICY IF EXISTS "authenticated_hospitals_view" ON hospitals;
-DROP POLICY IF EXISTS "allow user insert hospitals" ON hospitals;
-DROP POLICY IF EXISTS "allow user update hospitals" ON hospitals;
-DROP POLICY IF EXISTS "allow user delete hospitals" ON hospitals;
-DROP POLICY IF EXISTS "allow user select hospitals" ON hospitals;
 
--- 3.4 Consolidated hospital owner policies (one per operation)
+-- ============================================================
+-- HOSPITALS TABLE POLICIES
+-- ============================================================
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "hospitals_owner_access" ON hospitals;
+    DROP POLICY IF EXISTS "hospitals_owner_manage" ON hospitals;
+    DROP POLICY IF EXISTS "hospitals_owner_select" ON hospitals;
+    DROP POLICY IF EXISTS "hospitals_owner_insert" ON hospitals;
+    DROP POLICY IF EXISTS "hospitals_owner_update" ON hospitals;
+    DROP POLICY IF EXISTS "hospitals_owner_delete" ON hospitals;
+    DROP POLICY IF EXISTS "public_hospitals_view" ON hospitals;
+    DROP POLICY IF EXISTS "authenticated_hospitals_view" ON hospitals;
+    DROP POLICY IF EXISTS "allow user select hospitals" ON hospitals;
+    DROP POLICY IF EXISTS "allow user insert hospitals" ON hospitals;
+    DROP POLICY IF EXISTS "allow user update hospitals" ON hospitals;
+    DROP POLICY IF EXISTS "allow user delete hospitals" ON hospitals;
+    DROP POLICY IF EXISTS "allow public read hospitals" ON hospitals;
+    DROP POLICY IF EXISTS "donors_read_hospitals" ON hospitals;
+    DROP POLICY IF EXISTS "donors_read_hospitals" ON hospitals;
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
+
 CREATE POLICY "hospitals_owner_select" ON hospitals 
   FOR SELECT USING (user_id = (select auth.uid()));
 
@@ -157,8 +185,7 @@ CREATE POLICY "hospitals_owner_update" ON hospitals
 CREATE POLICY "hospitals_owner_delete" ON hospitals 
   FOR DELETE USING (user_id = (select auth.uid()));
 
--- 3.4 Hospital directory: donors can see verified hospitals (name, city, contact, phone)
-DROP POLICY IF EXISTS "donors_read_hospitals" ON hospitals;
+-- Hospital directory: donors can see verified hospitals (name, city, contact, phone)
 DROP POLICY IF EXISTS "donors_read_hospitals" ON hospitals;
 CREATE POLICY "donors_read_hospitals" ON hospitals 
   FOR SELECT USING (
@@ -170,20 +197,29 @@ CREATE POLICY "donors_read_hospitals" ON hospitals
     AND is_verified = true
   );
 
--- 3.5 Remove old/insecure blood_requests policies
-DROP POLICY IF EXISTS "hospitals_manage_requests" ON blood_requests;
-DROP POLICY IF EXISTS "hospitals_manage_own_requests" ON blood_requests;
-DROP POLICY IF EXISTS "hospitals_manage_own_requests" ON blood_requests;
-DROP POLICY IF EXISTS "Hospitals can insert requests" ON blood_requests;
-DROP POLICY IF EXISTS "Hospitals can update requests" ON blood_requests;
-DROP POLICY IF EXISTS "Hospitals can delete requests" ON blood_requests;
-DROP POLICY IF EXISTS "Public read open requests, hospitals read own, donors read resp" ON blood_requests;
-DROP POLICY IF EXISTS "allow user insert blood_requests" ON blood_requests;
-DROP POLICY IF EXISTS "allow user update blood_requests" ON blood_requests;
-DROP POLICY IF EXISTS "allow user delete blood_requests" ON blood_requests;
-DROP POLICY IF EXISTS "allow user select blood_requests" ON blood_requests;
 
--- 3.6 Consolidated blood_requests policies
+-- ============================================================
+-- BLOOD_REQUESTS TABLE POLICIES
+-- ============================================================
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "hospitals_manage_requests" ON blood_requests;
+    DROP POLICY IF EXISTS "hospitals_manage_own_requests" ON blood_requests;
+    DROP POLICY IF EXISTS "Hospitals can insert requests" ON blood_requests;
+    DROP POLICY IF EXISTS "Hospitals can update requests" ON blood_requests;
+    DROP POLICY IF EXISTS "Hospitals can delete requests" ON blood_requests;
+    DROP POLICY IF EXISTS "Public read open requests, hospitals read own, donors read resp" ON blood_requests;
+    DROP POLICY IF EXISTS "blood_requests_hospital_all" ON blood_requests;
+    DROP POLICY IF EXISTS "blood_requests_donor_read" ON blood_requests;
+    DROP POLICY IF EXISTS "blood_requests_public_read_open" ON blood_requests;
+    DROP POLICY IF EXISTS "allow user select blood_requests" ON blood_requests;
+    DROP POLICY IF EXISTS "allow user insert blood_requests" ON blood_requests;
+    DROP POLICY IF EXISTS "allow user update blood_requests" ON blood_requests;
+    DROP POLICY IF EXISTS "allow user delete blood_requests" ON blood_requests;
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
+
 -- Only VERIFIED hospitals can manage requests
 CREATE POLICY "blood_requests_hospital_all" ON blood_requests 
   FOR ALL USING (
@@ -217,26 +253,39 @@ CREATE POLICY "blood_requests_donor_read" ON blood_requests
 CREATE POLICY "blood_requests_public_read_open" ON blood_requests 
   FOR SELECT USING (status = 'open');
 
--- 3.6 Remove old/insecure donor_responses policies
-DROP POLICY IF EXISTS "donors_manage_responses" ON donor_responses;
-DROP POLICY IF EXISTS "hospitals_manage_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_view_their_own_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_insert_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_update_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_delete_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_view_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_insert_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_update_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_delete_responses" ON donor_responses;
-DROP POLICY IF EXISTS "Hospitals can insert responses for their requests" ON donor_responses;
-DROP POLICY IF EXISTS "Hospitals can update responses for their requests" ON donor_responses;
-DROP POLICY IF EXISTS "Hospitals can view responses for their requests" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_view_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_insert_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_update_responses" ON donor_responses;
-DROP POLICY IF EXISTS "donors_can_delete_responses" ON donor_responses;
 
--- 3.7 Consolidated donor_responses policies
+-- ============================================================
+-- DONOR_RESPONSES TABLE POLICIES
+-- ============================================================
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "donors_manage_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "hospitals_manage_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_view_their_own_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_insert_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_update_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_delete_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donor_responses_donor_select" ON donor_responses;
+    DROP POLICY IF EXISTS "donor_responses_donor_insert" ON donor_responses;
+    DROP POLICY IF EXISTS "donor_responses_donor_update" ON donor_responses;
+    DROP POLICY IF EXISTS "donor_responses_donor_delete" ON donor_responses;
+    DROP POLICY IF EXISTS "donor_responses_hospital_all" ON donor_responses;
+    DROP POLICY IF EXISTS "Hospitals can insert responses for their requests" ON donor_responses;
+    DROP POLICY IF EXISTS "Hospitals can update responses for their requests" ON donor_responses;
+    DROP POLICY IF EXISTS "Hospitals can view responses for their requests" ON donor_responses;
+    DROP POLICY IF EXISTS "Donors can view their own responses" ON donor_responses;
+    DROP POLICY IF EXISTS "Donors can insert responses" ON donor_responses;
+    DROP POLICY IF EXISTS "Donors can update responses" ON donor_responses;
+    DROP POLICY IF EXISTS "Donors can delete responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_view_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_insert_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_update_responses" ON donor_responses;
+    DROP POLICY IF EXISTS "donors_can_delete_responses" ON donor_responses;
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
+
+-- Donor policies (consolidated)
 CREATE POLICY "donor_responses_donor_select" ON donor_responses 
   FOR SELECT USING (
     EXISTS (
@@ -301,12 +350,23 @@ CREATE POLICY "donor_responses_hospital_all" ON donor_responses
     )
   );
 
--- 3.8 Remove old/insecure profiles policies
-DROP POLICY IF EXISTS "profiles_owner" ON profiles;
-DROP POLICY IF EXISTS "profiles_owner" ON profiles;
-DROP POLICY IF EXISTS "profiles_owner_access" ON profiles;
 
--- 3.9 Consolidated profiles policies
+-- ============================================================
+-- PROFILES TABLE POLICIES
+-- ============================================================
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "profiles_owner" ON profiles;
+    DROP POLICY IF EXISTS "profiles_owner" ON profiles;
+    DROP POLICY IF EXISTS "profiles_owner_access" ON profiles;
+    DROP POLICY IF EXISTS "profiles_owner_select" ON profiles;
+    DROP POLICY IF EXISTS "profiles_owner_insert" ON profiles;
+    DROP POLICY IF EXISTS "profiles_owner_update" ON profiles;
+    DROP POLICY IF EXISTS "profiles_owner_delete" ON profiles;
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
+
 CREATE POLICY "profiles_owner_select" ON profiles 
   FOR SELECT USING (user_id = (select auth.uid()));
 
@@ -317,11 +377,21 @@ CREATE POLICY "profiles_owner_update" ON profiles
   FOR UPDATE USING (user_id = (select auth.uid())) 
   WITH CHECK (user_id = (select auth.uid()));
 
--- 3.9 Push subscriptions: owner only (already created in section 1.4, ensure it uses init-plan)
-DROP POLICY IF EXISTS "push_subscriptions_owner" ON push_subscriptions;
+
+-- ============================================================
+-- PUSH_SUBSCRIPTIONS TABLE POLICIES
+-- ============================================================
+DO $$
+BEGIN
+    DROP POLICY IF EXISTS "push_subscriptions_owner" ON push_subscriptions;
+EXCEPTION WHEN OTHERS THEN
+    NULL;
+END $$;
+
 CREATE POLICY "push_subscriptions_owner" ON push_subscriptions
   FOR ALL USING (user_id = (select auth.uid()))
   WITH CHECK (user_id = (select auth.uid()));
+
 
 -- ============================================================
 -- SECTION 4: SECURITY DEFINER RPC FUNCTIONS (Fix exposure)
@@ -343,6 +413,7 @@ GRANT EXECUTE ON FUNCTION public.check_hospital_request_ownership(uuid) TO authe
 -- NOTE: If these functions should NOT be callable from frontend at all,
 -- change the GRANT above to a specific service role instead of 'authenticated'
 
+
 -- ============================================================
 -- SECTION 5: FIX INIT-PLAN WARNINGS (Performance)
 -- ============================================================
@@ -358,11 +429,13 @@ GRANT EXECUTE ON FUNCTION public.check_hospital_request_ownership(uuid) TO authe
 --   PERFORM * FROM some_table WHERE user_id = (select auth.uid());
 -- END; $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+
 -- ============================================================
 -- SECTION 6: ENABLE REALTIME (Run in Dashboard after migration)
 -- ============================================================
 -- Run in Supabase Dashboard > Database > Replication:
 -- Enable for: blood_requests, donor_responses, donors, push_subscriptions
+
 
 -- ============================================================
 -- SECTION 7: VERIFICATION QUERIES (Run after migration)
@@ -401,25 +474,27 @@ SELECT tablename, policyname, cmd, permissive FROM pg_policies WHERE schemaname 
 -- SELECT phone, latitude, longitude FROM donors LIMIT 1;
 -- Should return NULL for phone, latitude, longitude
 
+
 -- ============================================================
--- SECTION 7: ADDITIONAL SECURITY RECOMMENDATIONS
+-- SECTION 8: ADDITIONAL SECURITY RECOMMENDATIONS
 -- ============================================================
 
--- 7.1 Enable Leaked Password Protection (Supabase Dashboard > Auth > Settings)
+-- 8.1 Enable Leaked Password Protection (Supabase Dashboard > Auth > Settings)
 -- Enable "Check passwords against HaveIBeenPwned" to prevent compromised passwords
 
--- 7.2 Review SECURITY DEFINER functions
+-- 8.2 Review SECURITY DEFINER functions
 -- If check_* functions are ONLY called by server-side code (Edge Functions, triggers):
 --   REVOKE EXECUTE ON FUNCTION public.check_donor_ownership(uuid) FROM authenticated;
 --   GRANT EXECUTE ON FUNCTION public.check_donor_ownership(uuid) TO service_role;
 -- (repeat for other check_* functions)
 
--- 7.3 Consider changing check_* functions to SECURITY INVOKER if they don't need elevated privileges
+-- 8.3 Consider changing check_* functions to SECURITY INVOKER if they don't need elevated privileges
 -- ALTER FUNCTION public.check_donor_ownership(uuid) SECURITY INVOKER;
 
--- 7.4 Review unused indexes (from advisor)
+-- 8.4 Review unused indexes (from advisor)
 -- Check pg_stat_user_indexes for idx_* that have idx_scan = 0 after production use
 -- DROP INDEX IF EXISTS index_name; -- only after confirming no query uses them
+
 
 -- ============================================================
 -- END OF MIGRATION
@@ -431,7 +506,7 @@ SELECT tablename, policyname, cmd, permissive FROM pg_policies WHERE schemaname 
 -- 3. Created 16 performance indexes (including partial indexes)
 -- 4. Removed 25+ old/insecure RLS policies
 -- 5. Created 20+ consolidated RLS policies using (select auth.uid()) init-plan pattern
--- 6. Fixed column-level security: hospitals see only basic donor columns
+-- 5. Fixed column-level security: hospitals see only basic donor columns
 -- 7. Prevented unverified hospitals from creating requests
 -- 8. Revoked public/anon execute on SECURITY DEFINER functions
 -- 9. Fixed init-plan warnings via (select auth.uid()) pattern

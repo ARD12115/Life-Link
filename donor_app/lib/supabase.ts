@@ -57,7 +57,7 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
 // Optimization: Tell Supabase when the app goes into the background (native only)
 if (Platform.OS !== 'web') {
   const { AppState } = require('react-native');
-  AppState.addEventListener('change', (state) => {
+  AppState.addEventListener('change', (state: string) => {
     if (state === 'active') {
       supabase.auth.startAutoRefresh();
     } else {

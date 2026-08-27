@@ -51,6 +51,7 @@ function NewRequestModal({ myHospital, onClose, refetch, mutateRequests }) {
     notes:        '',
   })
   const [loading, setLoading]     = useState(false)
+  const [submitting, setSubmitting] = useState(false) // Deduplication guard
 
   const handleSubmit = async () => {
     if (!form.hospital_id) return
@@ -59,6 +60,8 @@ function NewRequestModal({ myHospital, onClose, refetch, mutateRequests }) {
       setLoading(false)
       return
     }
+    if (submitting) return // Prevent double-submit
+    setSubmitting(true)
     setLoading(true)
     const { data, error } = await supabase
       .from('blood_requests')
@@ -80,7 +83,7 @@ function NewRequestModal({ myHospital, onClose, refetch, mutateRequests }) {
 
         // Trigger SMS Alerts for Urgent/Critical requests
         if (['Urgent', 'Critical'].includes(form.urgency)) {
-          console.log('📡 Trigger the Edge Function (SMS/Push logic)')
+          logger.push('trigger_edge_function', { requestId: data.id, urgency: form.urgency })
           const { data: funcData, error: funcError } = await supabase.functions.invoke('send-blood-alert', {
             body: { 
               requestId: data.id,
@@ -91,10 +94,15 @@ function NewRequestModal({ myHospital, onClose, refetch, mutateRequests }) {
           })
 
           if (funcError) {
-            console.warn('📡 Simulation Mode: Edge function trigger failed (likely due to missing Twilio keys).')
-            console.log(`💡 [MOCK ALERT] An emergency SMS would have been sent to matching ${form.blood_group} donors in ${myHospital.city}.`)
+            logger.warn('Edge function trigger failed (simulation mode)', { 
+              error: funcError.message,
+              requestId: data.id 
+            })
           } else {
-            console.log('Emergency alerts sent successfully to matching donors!')
+            logger.info('Emergency alerts sent successfully', { 
+              requestId: data.id,
+              donorCount: matched.length
+            })
           }
         }
       }
@@ -107,6 +115,7 @@ function NewRequestModal({ myHospital, onClose, refetch, mutateRequests }) {
       onClose()
     }
     setLoading(false)
+    setSubmitting(false)
   }
 
   const compatibleGroups = getCompatibleDonorGroups(form.blood_group)

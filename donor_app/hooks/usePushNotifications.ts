@@ -1,15 +1,17 @@
+// hooks/usePushNotifications.ts
+// Push notification setup for Expo with Supabase integration
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useEffect, useState } from 'react';
 import { logger } from '../utils/logger';
-
-const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
 
 // Configure how notifications behave when the app is OPEN
 // Gate by isExpoGo since Expo SDK 53 removed this from Expo Go
+const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
+
 if (!isExpoGo) {
   try {
     Notifications.setNotificationHandler({
@@ -17,6 +19,8 @@ if (!isExpoGo) {
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
       }),
     });
   } catch (e) {
@@ -47,7 +51,7 @@ export function usePushNotifications(userId: string | undefined) {
         .upsert({
           user_id: uid,
           subscription: { type: 'expo', token: token },
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
 
       if (error) {
@@ -75,16 +79,18 @@ export function usePushNotifications(userId: string | undefined) {
     }
 
     if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-      if (finalStatus !== 'granted') {
-        logger.warn('Failed to get push token for push notification');
+      // Get permissions - use type assertion since expo-notifications types vary
+      const permission = await Notifications.getPermissionsAsync() as any;
+      
+      // Check if notification permission is granted
+      const isGranted = permission?.status === 'granted' || 
+                       (permission?.expiration !== undefined && permission?.expiration !== null);
+      
+      if (!isGranted) {
+        logger.warn('Notification permission not granted');
         return;
       }
+
       try {
         const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
         token = (await Notifications.getExpoPushTokenAsync({

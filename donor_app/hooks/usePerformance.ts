@@ -1,6 +1,5 @@
 // hooks/usePerformance.ts
 // Performance monitoring hook for React Native (Expo)
-
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { Platform, InteractionManager } from 'react-native';
 
@@ -15,59 +14,56 @@ const markEnd = (name: string): number => {
   if (Platform.OS === 'web' && 'performance' in window) {
     performance.mark(`${name}-end`);
     performance.measure(name, `${name}-start`, `${name}-end`);
-    const measure = performance.getEntriesByName(name, 'measure')[0];
+    const entries = performance.getEntriesByName(name, 'measure');
+    const measure = entries.length > 0 ? entries[entries.length - 1] : null;
     return measure?.duration || 0;
   }
   return 0;
 };
 
-export async function measureAsync(name: string, fn: () => Promise<any>) {
-  markStart(name);
-  try {
-    return await fn();
-  } finally {
-    markEnd(name);
-  }
-}
-
 // Memory tracking (web only)
 function trackMemory() {
   if (Platform.OS === 'web' && 'memory' in performance) {
-    const mem = performance.memory;
+    const mem: any = performance.memory;
     return {
-      used: (mem.usedJSHeapSize / 1048576).toFixed(2) + ' MB',
-      total: (mem.totalJSHeapSize / 1048576).toFixed(2) + ' MB',
-      limit: (mem.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB',
+      used: (mem?.usedJSHeapSize / 1048576).toFixed(2) + ' MB',
+      total: (mem?.totalJSHeapSize / 1048576).toFixed(2) + ' MB',
+      limit: (mem?.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB',
     };
   }
   return null;
 }
 
-// Cache with TTL
-const memoryCache = new Map<string, { value: any; expires: number }>();
+// Simple cache using plain object - no Map iterator issues
+const memoryCache: Record<string, { value: any; expires: number }> = {};
 
 const cache = {
   set: (key: string, value: any, ttlMs = 300000) => {
-    memoryCache.set(key, { value, expires: Date.now() + ttlMs });
+    memoryCache[key] = { value, expires: Date.now() + ttlMs };
   },
   get: (key: string) => {
-    const entry = memoryCache.get(key);
+    const entry = memoryCache[key];
     if (!entry) return null;
     if (Date.now() > entry.expires) {
-      memoryCache.delete(key);
+      delete memoryCache[key];
       return null;
     }
     return entry.value;
   },
-  has: (key: string) => cache.get(key) !== null,
-  delete: (key: string) => memoryCache.delete(key),
-  clear: () => memoryCache.clear(),
+  has: (key: string) => Object.keys(memoryCache).includes(key),
+  delete: (key: string) => delete memoryCache[key],
+  clear: () => {
+    Object.keys(memoryCache).forEach(key => delete memoryCache[key]);
+  },
   cleanup: () => {
     const now = Date.now();
-    for (const [key, entry] of memoryCache.entries()) {
-      if (now > entry.expires) memoryCache.delete(key);
-    }
-  }
+    Object.keys(memoryCache).forEach(key => {
+      const entry = memoryCache[key];
+      if (entry && now > entry.expires) {
+        delete memoryCache[key];
+      }
+    });
+  },
 };
 
 // Debounce
@@ -97,26 +93,25 @@ let initialized = false;
 export function initPerformanceMonitoring() {
   if (initialized) return;
   initialized = true;
-  
+
   if (Platform.OS === 'web') {
     // Web vitals tracking
     if ('PerformanceObserver' in window) {
       try {
         new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          const last = entries[entries.length - 1];
-          console.log('[WebVitals] LCP:', last.startTime.toFixed(2), 'ms');
+          const last = entries.length > 0 ? entries[entries.length - 1] : null;
+          if (last) {
+            console.log('[WebVitals] LCP:', last.startTime.toFixed(2), 'ms');
+          }
         }).observe({ type: 'largest-contentful-paint', buffered: true });
       } catch (e) {}
     }
   }
-  
+
   // Cleanup cache periodically
   setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of (memoryCache as any).entries()) {
-      if (now > entry.expires) memoryCache.delete(key);
-    }
+    cache.cleanup();
   }, 60000);
 }
 
@@ -126,18 +121,24 @@ export function usePerformance() {
 
   useEffect(() => {
     renderCount.current++;
-    
+
     // Run once after interactions settle
     InteractionManager.runAfterInteractions(() => {
       // Performance initialization
     });
   }, []);
 
+  const measureAsync = useCallback(async (name: string, fn: () => Promise<any>) => {
+    markStart(name);
+    try {
+      return await fn();
+    } finally {
+      markEnd(name);
+    }
+  }, []);
+
   return {
-    measure: useCallback(async (name: string, fn: () => Promise<any>) => {
-      return measureAsync(name, fn);
-    }, []),
-    
+    measureAsync,
     cache: {
       set: useCallback((key: string, value: any, ttl?: number) => cache.set(key, value, ttl), []),
       get: useCallback((key: string) => cache.get(key), []),
@@ -145,12 +146,12 @@ export function usePerformance() {
       delete: useCallback((key: string) => cache.delete(key), []),
       clear: useCallback(() => cache.clear(), []),
     },
-    
+
     debounce: useCallback((fn: (...args: any[]) => any, delay: number) => debounce(fn, delay), []),
     throttle: useCallback((fn: (...args: any[]) => any, limit: number) => throttle(fn, limit), []),
-    
+
     trackMemory: useCallback(() => trackMemory(), []),
-    
+
     getMetrics: useCallback(() => ({
       renderCount: renderCount.current,
       mountDuration: Date.now() - mountTime.current,
@@ -165,7 +166,7 @@ export function useLazyLoad(options: { rootMargin?: string; threshold?: number }
 
   useEffect(() => {
     if (!elementRef.current || isVisible) return;
-    
+
     if (Platform.OS === 'web' && 'IntersectionObserver' in window) {
       const observer = new IntersectionObserver(
         ([entry]) => {
@@ -201,11 +202,11 @@ export function useDebouncedValue<T>(value: T, delay = 300): T {
 
 // Throttled callback hook
 export function useThrottledCallback<T extends (...args: any[]) => any>(
-  callback: T, 
+  callback: T,
   limit: number
 ): T {
-  const lastRun = useRef(0);
-  const throttled = useRef(true);
+  const lastRun = useRef<number>(0);
+  const throttled = useRef<boolean>(true);
 
   return useCallback((...args: any[]) => {
     const now = Date.now();
@@ -223,23 +224,35 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
   }, [callback, limit]) as T;
 }
 
-export default function usePerformance() {
-  return {
-    measure: measureAsync,
-    cache: {
-      set: (key: string, value: any, ttl?: number) => cache.set(key, value, ttl),
-      get: (key: string) => cache.get(key),
-      has: (key: string) => cache.has(key),
-      delete: (key: string) => cache.delete(key),
-      clear: () => cache.clear(),
+// Named export for direct use without hook
+export const performanceMonitor = () => ({
+  measureAsync: async (name: string, fn: () => Promise<any>) => {
+    markStart(name);
+    try {
+      return await fn();
+    } finally {
+      markEnd(name);
+    }
+  },
+  cache: {
+    set: (key: string, value: any, ttl?: number) => {
+      memoryCache[key] = { value, expires: Date.now() + (ttl || 300000) };
     },
-    debounce,
-    throttle,
-    trackMemory: () => trackMemory(),
-    getMetrics: () => ({ renderCount: 0, mountDuration: 0 })
-  };
-}
-
-// Import React hooks at the end to avoid circular dependency
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { InteractionManager } from 'react-native';
+    get: (key: string) => {
+      const entry = memoryCache[key];
+      if (!entry) return null;
+      if (Date.now() > entry.expires) {
+        delete memoryCache[key];
+        return null;
+      }
+      return entry.value;
+    },
+    has: (key: string) => Object.keys(memoryCache).includes(key),
+    delete: (key: string) => delete memoryCache[key],
+    clear: () => {
+      Object.keys(memoryCache).forEach(key => delete memoryCache[key]);
+    },
+  },
+  trackMemory,
+  getMetrics: () => ({ renderCount: 0, mountDuration: 0 })
+});

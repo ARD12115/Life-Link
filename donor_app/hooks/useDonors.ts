@@ -1,62 +1,94 @@
-import { useState, useEffect } from 'react';
+// hooks/useDonors.ts
+// Donor data fetching with Supabase and realtime subscriptions
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Tables } from '../types/supabase';
-
-type Donor = Tables<'donors'>
-type Hospital = Tables<'hospitals'>
 
 export function useDonors() {
-  const [donors, setDonors] = useState<Donor[]>([]);
+  const [donors, setDonors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMounted = useRef<boolean>(true);
+
+  const fetchDonors = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('donors')
+        .select('id, name, blood_group, city, latitude, longitude, available');
+
+      if (!isMounted.current) return;
+
+      if (error) {
+        console.error('Donors fetch error:', error);
+        setLoading(false);
+        return;
+      } else {
+        setDonors(data || []);
+        setLoading(false);
+      }
+    } catch (err) {
+      if (!isMounted.current) return;
+      console.error('Donors fetch exception:', err);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
+    isMounted.current = true;
     fetchDonors();
 
-    const channel = supabase
-      .channel('donors_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'donors' }, (payload) => {
+    const channelName = `donors_realtime_${Math.random().toString(36).substring(7)}`;
+    const channelRef = supabase.channel(channelName);
+
+    channelRef
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'donors' }, (payload: any) => {
+        if (!isMounted.current) return;
+
         if (payload.eventType === 'INSERT') {
-          setDonors(prev => [...prev, payload.new as Donor]);
+          fetchDonors();
         } else if (payload.eventType === 'UPDATE') {
-          setDonors(prev => prev.map(d => d.id === payload.new.id ? payload.new as Donor : d));
+          fetchDonors();
         } else if (payload.eventType === 'DELETE') {
-          setDonors(prev => prev.filter(d => d.id !== payload.old.id));
+          setDonors(prev => prev.filter((d: any) => d.id !== payload.old.id));
         }
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      isMounted.current = false;
+      supabase.removeChannel(channelRef);
     };
-  }, []);
-
-  async function fetchDonors() {
-    // Only select columns needed for map display (no phone, no PII)
-    const { data, error } = await supabase
-      .from('donors')
-      .select('id, name, blood_group, city, latitude, longitude, available');
-    if (data) setDonors(data as Donor[]);
-    setLoading(false);
-  }
+  }, [fetchDonors]);
 
   return { donors, loading, refetch: fetchDonors };
 }
 
 export function useHospitals() {
-  const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [hospitals, setHospitals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMounted = useRef<boolean>(true);
 
-  useEffect(() => {
-    fetchHospitals();
+  const fetchHospitals = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('hospitals')
+        .select('id, name, city, contact_person, phone, latitude, longitude, is_verified');
+
+      if (!isMounted.current) return;
+
+      if (!error && data) {
+        setHospitals(data as any[]);
+      }
+      setLoading(false);
+    } catch (err) {
+      if (!isMounted.current) return;
+      console.error('Hospitals fetch exception:', err);
+      setLoading(false);
+    }
   }, []);
 
-  async function fetchHospitals() {
-    const { data } = await supabase
-      .from('hospitals')
-      .select('id, name, city, contact_person, phone, latitude, longitude');
-    if (data) setHospitals(data as Hospital[]);
-    setLoading(false);
-  }
+  useEffect(() => {
+    isMounted.current = true;
+    fetchHospitals();
+  }, [fetchHospitals]);
 
-  return { hospitals, loading };
+  return { hospitals, loading, refetch: fetchHospitals };
 }
