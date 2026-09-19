@@ -1,15 +1,15 @@
-import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 export default function RoleSelector({ user, onProfileCreated }) {
-  const [role, setRole] = useState('hospital')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [role, setRole] = useState('hospital');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault()
-    setError(null)
-    setLoading(true)
+  const handleSubmit = async event => {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
 
     const { data, error } = await supabase
       .from('profiles')
@@ -25,31 +25,46 @@ export default function RoleSelector({ user, onProfileCreated }) {
         { onConflict: 'user_id' }
       )
       .select()
-      .single()
+      .single();
 
     if (error) {
-      console.error('Error creating profile:', error)
-      setError(error.message)
-      setLoading(false)
-      return
+      console.error('Error creating profile:', error);
+      setError(error.message);
+      setLoading(false);
+      return;
     }
 
-    onProfileCreated(data)
-    setLoading(false)
-  }
+    onProfileCreated(data);
+    setLoading(false);
+  };
 
   return (
-    <div className="flex-center" style={{ minHeight: '80vh', justifyContent: 'center', padding: '20px' }}>
-      <div className="glass-panel modal-content" style={{ maxWidth: '520px', width: '100%', padding: '40px' }}>
+    <div
+      className="flex-center"
+      style={{ minHeight: '80vh', justifyContent: 'center', padding: '20px' }}
+    >
+      <div
+        className="glass-panel modal-content"
+        style={{ maxWidth: '520px', width: '100%', padding: '40px' }}
+      >
         <div style={{ marginBottom: '28px', textAlign: 'center' }}>
-          <h2 className="logo-text" style={{ fontSize: '26px' }}>Choose your role</h2>
+          <h2 className="logo-text" style={{ fontSize: '26px' }}>
+            Choose your role
+          </h2>
           <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>
             We secure access by role so the right people see only the data they should.
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px',
+              marginBottom: '24px',
+            }}
+          >
             <button
               type="button"
               onClick={() => setRole('hospital')}
@@ -75,15 +90,18 @@ export default function RoleSelector({ user, onProfileCreated }) {
             </button>
           </div>
 
-          {error && (
-            <p style={{ color: 'var(--blood-ruby)', marginBottom: '16px' }}>{error}</p>
-          )}
+          {error && <p style={{ color: 'var(--blood-ruby)', marginBottom: '16px' }}>{error}</p>}
 
-          <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%' }}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary"
+            style={{ width: '100%' }}
+          >
             {loading ? 'Saving role...' : 'Continue as ' + role}
           </button>
         </form>
       </div>
     </div>
-  )
+  );
 }

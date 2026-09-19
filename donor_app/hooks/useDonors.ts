@@ -35,7 +35,7 @@ export function useDonors() {
     isMounted.current = true;
     fetchDonors();
 
-    const channelName = `donors_realtime_${Math.random().toString(36).substring(7)}`;
+    const channelName = 'donors_realtime';
     const channelRef = supabase.channel(channelName);
 
     channelRef

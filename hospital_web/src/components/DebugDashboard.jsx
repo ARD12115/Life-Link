@@ -1,19 +1,25 @@
-import React, { useState } from 'react'
-import { testConnection, testAuth, fetchAllTables, subscribeToRealtime, getSupabaseEnvInfo } from '../lib/supabaseDebug'
+import React, { useState } from 'react';
+import {
+  testConnection,
+  testAuth,
+  fetchAllTables,
+  subscribeToRealtime,
+  getSupabaseEnvInfo,
+} from '../lib/supabaseDebug';
 
 export function DebugDashboard({ visible = true }) {
-  const [debugInfo, setDebugInfo] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [debugInfo, setDebugInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const runFullDiagnostic = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      console.log('🔍 Starting full diagnostic...')
+      console.log('🔍 Starting full diagnostic...');
 
-      const authInfo = await testAuth()
-      const connInfo = await testConnection()
-      const tableInfo = await fetchAllTables()
-      const unsubscribe = subscribeToRealtime()
+      const authInfo = await testAuth();
+      const connInfo = await testConnection();
+      const tableInfo = await fetchAllTables();
+      const unsubscribe = subscribeToRealtime();
 
       const info = {
         timestamp: new Date().toISOString(),
@@ -21,41 +27,43 @@ export function DebugDashboard({ visible = true }) {
         connection: connInfo,
         tables: tableInfo,
         env: getSupabaseEnvInfo(),
-      }
+      };
 
-      setDebugInfo(info)
-      console.log('✅ Diagnostic complete:', info)
+      setDebugInfo(info);
+      console.log('✅ Diagnostic complete:', info);
 
-      setTimeout(() => unsubscribe(), 5000)
+      setTimeout(() => unsubscribe(), 5000);
     } catch (err) {
-      console.error('❌ Diagnostic failed:', err)
-      setDebugInfo({ error: err.message || String(err) })
+      console.error('❌ Diagnostic failed:', err);
+      setDebugInfo({ error: err.message || String(err) });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (!visible) {
-    return null
+    return null;
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 20,
-      right: 20,
-      background: 'rgba(0,0,0,0.92)',
-      color: '#0f0',
-      padding: '20px',
-      borderRadius: '8px',
-      fontFamily: 'monospace',
-      fontSize: '11px',
-      maxWidth: '420px',
-      maxHeight: '520px',
-      overflowY: 'auto',
-      zIndex: 9999,
-      border: '2px solid #0f0'
-    }}>
+    <div
+      style={{
+        position: 'fixed',
+        bottom: 20,
+        right: 20,
+        background: 'rgba(0,0,0,0.92)',
+        color: '#0f0',
+        padding: '20px',
+        borderRadius: '8px',
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        maxWidth: '420px',
+        maxHeight: '520px',
+        overflowY: 'auto',
+        zIndex: 9999,
+        border: '2px solid #0f0',
+      }}
+    >
       <div style={{ marginBottom: '12px', fontWeight: 'bold' }}>🐛 DEV DEBUG PANEL</div>
 
       <button
@@ -70,7 +78,7 @@ export function DebugDashboard({ visible = true }) {
           cursor: 'pointer',
           fontWeight: 'bold',
           width: '100%',
-          marginBottom: '12px'
+          marginBottom: '12px',
         }}
       >
         {loading ? '⏳ Running...' : '▶️ RUN DIAGNOSTIC'}
@@ -82,11 +90,15 @@ export function DebugDashboard({ visible = true }) {
 
       {debugInfo && (
         <div style={{ fontSize: '10px' }}>
-          <div><strong>Supabase env</strong></div>
+          <div>
+            <strong>Supabase env</strong>
+          </div>
           <div>URL: {debugInfo.env.url ? `${debugInfo.env.url.slice(0, 30)}...` : 'MISSING'}</div>
           <div>Key loaded: {debugInfo.env.keyLoaded ? 'YES' : 'NO'}</div>
           {debugInfo.env.missing && (
-            <div style={{ color: '#f00' }}>Missing fields: {debugInfo.env.missingFields.join(', ')}</div>
+            <div style={{ color: '#f00' }}>
+              Missing fields: {debugInfo.env.missingFields.join(', ')}
+            </div>
           )}
 
           <hr style={{ borderColor: '#0f0', margin: '8px 0' }} />
@@ -107,7 +119,9 @@ export function DebugDashboard({ visible = true }) {
             <div style={{ color: debugInfo.connection?.success ? '#0f0' : '#f00' }}>
               Connection test: {debugInfo.connection?.success ? '✅ OK' : '❌ FAILED'}
             </div>
-            {debugInfo.connection?.error && <div style={{ color: '#f00' }}>{debugInfo.connection.error}</div>}
+            {debugInfo.connection?.error && (
+              <div style={{ color: '#f00' }}>{debugInfo.connection.error}</div>
+            )}
           </div>
 
           <hr style={{ borderColor: '#0f0', margin: '8px 0' }} />
@@ -119,9 +133,13 @@ export function DebugDashboard({ visible = true }) {
           </div>
           {debugInfo.tables?.errors?.length > 0 && (
             <div style={{ marginTop: '8px', color: '#f88' }}>
-              <div><strong>Table fetch errors</strong></div>
+              <div>
+                <strong>Table fetch errors</strong>
+              </div>
               {debugInfo.tables.errors.map((err, idx) => (
-                <div key={idx}>{err.table}: {err.message}</div>
+                <div key={idx}>
+                  {err.table}: {err.message}
+                </div>
               ))}
             </div>
           )}
@@ -132,7 +150,7 @@ export function DebugDashboard({ visible = true }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default DebugDashboard
+export default DebugDashboard;

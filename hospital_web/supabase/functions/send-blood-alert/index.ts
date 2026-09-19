@@ -76,7 +76,7 @@ serve(async (req) => {
             body: new URLSearchParams({
               From: TWILIO_FROM_NUMBER!,
               To: donor.phone!,
-              Body: `${alertMessage} Respond at: http://localhost:3000/donor`,
+              Body: `${alertMessage} Respond at: ${Deno.env.get('APP_URL') || 'http://localhost:3001'}/donor`,
             }),
           }
         )
@@ -91,7 +91,7 @@ serve(async (req) => {
         await webpush.sendNotification(sub.subscription, JSON.stringify({
           title: '🚨 Emergency Blood Request',
           body: alertMessage,
-          url: 'http://localhost:3000/donor'
+          url: `${Deno.env.get('APP_URL') || 'http://localhost:3001'}/donor`
         }))
       } catch (err) {
         console.error('Failed to send push notification:', err)

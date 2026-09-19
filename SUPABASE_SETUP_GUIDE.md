@@ -36,8 +36,7 @@ check (urgency in ('Routine','Urgent','Critical'))
 
 **Request Status Flow:**
 ```sql
-check (status in ('open','in_progress','filled','cancelled'))
--- Note: 'filled' in schema maps to 'closed' in UI code
+check (status in ('open','in_progress','closed','cancelled'))
 ```
 
 **Response Status Flow:**

@@ -1,62 +1,75 @@
-import React, { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
-import { toast } from 'react-hot-toast'
-import { ShieldCheck, ShieldAlert, Users, Hospital, Bell, Search, Filter, CheckCircle, XCircle, Activity } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { toast } from 'react-hot-toast';
+import {
+  ShieldCheck,
+  ShieldAlert,
+  Users,
+  Hospital,
+  Bell,
+  Search,
+  Filter,
+  CheckCircle,
+  XCircle,
+  Activity,
+} from 'lucide-react';
 
 export default function AdminDashboard({ user }) {
-  const [stats, setStats] = useState({ donors: 0, hospitals: 0, requests: 0 })
-  const [hospitals, setHospitals] = useState([])
-  const [requests, setRequests] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all') // 'all', 'pending', 'verified'
+  const [stats, setStats] = useState({ donors: 0, hospitals: 0, requests: 0 });
+  const [hospitals, setHospitals] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); // 'all', 'pending', 'verified'
 
   useEffect(() => {
-    fetchInitialData()
-    
+    fetchInitialData();
+
     // Real-time subscriptions for admin monitoring
-    const hChannel = supabase.channel('admin_hospitals')
+    const hChannel = supabase
+      .channel('admin_hospitals')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'hospitals' }, fetchHospitals)
-      .subscribe()
-      
-    const rChannel = supabase.channel('admin_requests')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'blood_requests' }, fetchRequests)
-      .subscribe()
+      .subscribe();
+
+    const rChannel = supabase
+      .channel('admin_requests')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'blood_requests' },
+        fetchRequests
+      )
+      .subscribe();
 
     return () => {
-      supabase.removeChannel(hChannel)
-      supabase.removeChannel(rChannel)
-    }
-  }, [])
+      supabase.removeChannel(hChannel);
+      supabase.removeChannel(rChannel);
+    };
+  }, []);
 
   async function fetchInitialData() {
-    setLoading(true)
-    await Promise.all([
-      fetchStats(),
-      fetchHospitals(),
-      fetchRequests()
-    ])
-    setLoading(false)
+    setLoading(true);
+    await Promise.all([fetchStats(), fetchHospitals(), fetchRequests()]);
+    setLoading(false);
   }
 
   async function fetchStats() {
     const [dCount, hCount, rCount] = await Promise.all([
       supabase.from('donors').select('*', { count: 'exact', head: true }),
       supabase.from('hospitals').select('*', { count: 'exact', head: true }),
-      supabase.from('blood_requests').select('*', { count: 'exact', head: true })
-    ])
+      supabase.from('blood_requests').select('*', { count: 'exact', head: true }),
+    ]);
     setStats({
       donors: dCount.count || 0,
       hospitals: hCount.count || 0,
-      requests: rCount.count || 0
-    })
+      requests: rCount.count || 0,
+    });
   }
 
   async function fetchHospitals() {
     const { data } = await supabase
       .from('hospitals')
       .select('*')
-      .order('created_at', { ascending: false })
-    if (data) setHospitals(data)
+      .order('created_at', { ascending: false });
+    if (data) setHospitals(data);
   }
 
   async function fetchRequests() {
@@ -64,31 +77,36 @@ export default function AdminDashboard({ user }) {
       .from('blood_requests')
       .select('*, hospital:hospitals(name)')
       .order('created_at', { ascending: false })
-      .limit(10)
-    if (data) setRequests(data)
+      .limit(10);
+    if (data) setRequests(data);
   }
 
   async function toggleVerification(hospitalId, currentStatus) {
     const { error } = await supabase
       .from('hospitals')
       .update({ is_verified: !currentStatus })
-      .eq('id', hospitalId)
-    
+      .eq('id', hospitalId);
+
     if (error) {
-      toast.error('Error updating verification: ' + error.message)
+      toast.error('Error updating verification: ' + error.message);
     } else {
-      toast.success(currentStatus ? 'Verification revoked' : 'Hospital verified successfully!')
-      fetchHospitals()
+      toast.success(currentStatus ? 'Verification revoked' : 'Hospital verified successfully!');
+      fetchHospitals();
     }
   }
 
   const filteredHospitals = hospitals.filter(h => {
-    if (filter === 'pending') return !h.is_verified
-    if (filter === 'verified') return h.is_verified
-    return true
-  })
+    if (filter === 'pending') return !h.is_verified;
+    if (filter === 'verified') return h.is_verified;
+    return true;
+  });
 
-  if (loading) return <div className="flex-center" style={{ height: '80vh' }}>Loading Admin Panel...</div>
+  if (loading)
+    return (
+      <div className="flex-center" style={{ height: '80vh' }}>
+        Loading Admin Panel...
+      </div>
+    );
 
   return (
     <div className="dashboard-container fade-in">
@@ -117,8 +135,10 @@ export default function AdminDashboard({ user }) {
         </div>
       </div>
 
-      <div className="admin-layout" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginTop: '24px' }}>
-        
+      <div
+        className="admin-layout"
+        style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginTop: '24px' }}
+      >
         {/* Hospital Verification Section */}
         <div className="card glass">
           <div className="flex-between" style={{ marginBottom: '20px' }}>
@@ -126,8 +146,18 @@ export default function AdminDashboard({ user }) {
               <ShieldCheck size={20} /> Hospital Verification
             </h2>
             <div className="flex-center" style={{ gap: '8px' }}>
-              <button onClick={() => setFilter('all')} className={`chip ${filter === 'all' ? 'active' : ''}`}>All</button>
-              <button onClick={() => setFilter('pending')} className={`chip ${filter === 'pending' ? 'active' : ''}`}>Pending</button>
+              <button
+                onClick={() => setFilter('all')}
+                className={`chip ${filter === 'all' ? 'active' : ''}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilter('pending')}
+                className={`chip ${filter === 'pending' ? 'active' : ''}`}
+              >
+                Pending
+              </button>
             </div>
           </div>
 
@@ -144,7 +174,9 @@ export default function AdminDashboard({ user }) {
               <tbody>
                 {filteredHospitals.map(h => (
                   <tr key={h.id}>
-                    <td><strong>{h.name}</strong></td>
+                    <td>
+                      <strong>{h.name}</strong>
+                    </td>
                     <td>{h.city}</td>
                     <td>
                       {h.is_verified ? (
@@ -158,7 +190,7 @@ export default function AdminDashboard({ user }) {
                       )}
                     </td>
                     <td>
-                      <button 
+                      <button
                         onClick={() => toggleVerification(h.id, h.is_verified)}
                         className={`btn-icon ${h.is_verified ? 'btn-danger' : 'btn-success'}`}
                         title={h.is_verified ? 'Revoke Verification' : 'Approve Facility'}
@@ -181,17 +213,25 @@ export default function AdminDashboard({ user }) {
           <div className="activity-feed">
             {requests.map(req => (
               <div key={req.id} className="activity-item">
-                <div className="urgency-line" style={{ backgroundColor: req.urgency === 'Critical' ? 'var(--primary)' : 'var(--secondary)' }} />
+                <div
+                  className="urgency-line"
+                  style={{
+                    backgroundColor:
+                      req.urgency === 'Critical' ? 'var(--primary)' : 'var(--secondary)',
+                  }}
+                />
                 <div style={{ flex: 1 }}>
-                  <p className="activity-desc"><strong>{req.hospital?.name}</strong> requested <strong>{req.blood_group}</strong></p>
+                  <p className="activity-desc">
+                    <strong>{req.hospital?.name}</strong> requested{' '}
+                    <strong>{req.blood_group}</strong>
+                  </p>
                   <p className="activity-meta">{new Date(req.created_at).toLocaleTimeString()}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
-  )
+  );
 }

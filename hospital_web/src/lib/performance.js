@@ -33,7 +33,7 @@ export function trackWebVitals() {
   if (!('PerformanceObserver' in window)) return;
 
   // LCP - Largest Contentful Paint
-  new PerformanceObserver((entryList) => {
+  new PerformanceObserver(entryList => {
     const entries = entryList.getEntries();
     const lastEntry = entries[entries.length - 1];
     console.log('[WebVitals] LCP:', lastEntry.startTime.toFixed(2), 'ms');
@@ -41,18 +41,18 @@ export function trackWebVitals() {
   }).observe({ type: 'largest-contentful-paint', buffered: true });
 
   // FID - First Input Delay
-  new PerformanceObserver((entryList) => {
+  new PerformanceObserver(entryList => {
     const entries = entryList.getEntries();
-    entries.forEach((entry) => {
+    entries.forEach(entry => {
       console.log('[WebVitals] FID:', entry.processingStart - entry.startTime, 'ms');
       sendToAnalytics('FID', entry.processingStart - entry.startTime);
     });
   }).observe({ type: 'first-input', buffered: true });
 
   // CLS - Cumulative Layout Shift
-  new PerformanceObserver((entryList) => {
+  new PerformanceObserver(entryList => {
     let clsValue = 0;
-    entries.forEach((entry) => {
+    entries.forEach(entry => {
       if (!entry.hadRecentInput) {
         clsValue += entry.value;
       }
@@ -62,9 +62,9 @@ export function trackWebVitals() {
   }).observe({ type: 'layout-shift', buffered: true });
 
   // TTFB - Time to First Byte
-  new PerformanceObserver((entryList) => {
+  new PerformanceObserver(entryList => {
     const entries = entryList.getEntries();
-    entries.forEach((entry) => {
+    entries.forEach(entry => {
       console.log('[WebVitals] TTFB:', entry.responseStart - entry.requestStart, 'ms');
       sendToAnalytics('TTFB', entry.responseStart - entry.requestStart);
     });
@@ -82,13 +82,13 @@ export function analyzeResourceTiming() {
 
   const resources = performance.getEntriesByType('resource');
   const slowResources = resources
-    .filter((r) => r.duration > 500)
+    .filter(r => r.duration > 500)
     .sort((a, b) => b.duration - a.duration)
     .slice(0, 10);
 
   if (slowResources.length > 0) {
     console.group('[Perf] Slow Resources (>500ms)');
-    slowResources.forEach((r) => {
+    slowResources.forEach(r => {
       console.log(`${r.duration.toFixed(2)}ms - ${r.name}`);
     });
     console.groupEnd();
@@ -115,14 +115,15 @@ export function trackMemory() {
 export const cache = {
   // Memory cache with TTL
   memory: new Map(),
-  
-  set(key, value, ttlMs = 300000) { // 5 min default
+
+  set(key, value, ttlMs = 300000) {
+    // 5 min default
     this.memory.set(key, {
       value,
-      expires: Date.now() + ttlMs
+      expires: Date.now() + ttlMs,
     });
   },
-  
+
   get(key) {
     const entry = this.memory.get(key);
     if (!entry) return null;
@@ -132,19 +133,19 @@ export const cache = {
     }
     return entry.value;
   },
-  
+
   has(key) {
     return this.get(key) !== null;
   },
-  
+
   delete(key) {
     this.memory.delete(key);
   },
-  
+
   clear() {
     this.memory.clear();
   },
-  
+
   // Cleanup expired entries
   cleanup() {
     const now = Date.now();
@@ -153,7 +154,7 @@ export const cache = {
         this.memory.delete(key);
       }
     }
-  }
+  },
 };
 
 // Debounce function
@@ -182,10 +183,14 @@ export function requestIdleCallbackPolyfill(callback, options) {
   if ('requestIdleCallback' in window) {
     return window.requestIdleCallback(callback, options);
   }
-  return setTimeout(() => callback({
-    timeRemaining: () => Math.max(0, 50 - (Date.now() - performance.now())),
-    didTimeout: false
-  }), 1);
+  return setTimeout(
+    () =>
+      callback({
+        timeRemaining: () => Math.max(0, 50 - (Date.now() - performance.now())),
+        didTimeout: false,
+      }),
+    1
+  );
 }
 
 // Intersection Observer for lazy loading
@@ -193,24 +198,27 @@ export function createLazyObserver(callback, options = {}) {
   if (!('IntersectionObserver' in window)) {
     // Fallback: load all immediately
     return {
-      observe: (el) => callback(el),
+      observe: el => callback(el),
       unobserve: () => {},
-      disconnect: () => {}
+      disconnect: () => {},
     };
   }
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        callback(entry.target);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, {
-    rootMargin: '100px',
-    threshold: 0.01,
-    ...options
-  });
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          callback(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    {
+      rootMargin: '100px',
+      threshold: 0.01,
+      ...options,
+    }
+  );
 
   return observer;
 }
@@ -221,11 +229,11 @@ export const PERFORMANCE_BUDGETS = {
   apiResponse: 500,
   pageLoad: 3000,
   interaction: 100,
-  
+
   // Size budgets (KB)
   jsBundle: 200,
   cssBundle: 50,
-  totalPage: 1000
+  totalPage: 1000,
 };
 
 // Check if performance budgets are met
@@ -234,13 +242,17 @@ export function checkPerformanceBudgets() {
   if (!navigation) return { passed: true, violations: [] };
 
   const violations = [];
-  
+
   if (navigation.loadEventEnd - navigation.startTime > PERFORMANCE_BUDGETS.pageLoad) {
-    violations.push(`Page load (${(navigation.loadEventEnd - navigation.startTime).toFixed(0)}ms) exceeds ${PERFORMANCE_BUDGETS.pageLoad}ms`);
+    violations.push(
+      `Page load (${(navigation.loadEventEnd - navigation.startTime).toFixed(0)}ms) exceeds ${PERFORMANCE_BUDGETS.pageLoad}ms`
+    );
   }
-  
+
   if (navigation.responseStart - navigation.requestStart > PERFORMANCE_BUDGETS.apiResponse) {
-    violations.push(`TTFB (${(navigation.responseStart - navigation.requestStart).toFixed(0)}ms) exceeds ${PERFORMANCE_BUDGETS.apiResponse}ms`);
+    violations.push(
+      `TTFB (${(navigation.responseStart - navigation.requestStart).toFixed(0)}ms) exceeds ${PERFORMANCE_BUDGETS.apiResponse}ms`
+    );
   }
 
   return { passed: violations.length === 0, violations };
@@ -250,13 +262,13 @@ export function checkPerformanceBudgets() {
 export function initPerformanceMonitoring() {
   if (process.env.NODE_ENV === 'production') {
     trackWebVitals();
-    
+
     // Periodic memory check
     setInterval(() => trackMemory(), 30000);
-    
+
     // Periodic resource analysis
     setInterval(() => analyzeResourceTiming(), 60000);
-    
+
     // Check budgets on load
     window.addEventListener('load', () => {
       setTimeout(() => {
@@ -267,7 +279,7 @@ export function initPerformanceMonitoring() {
       }, 0);
     });
   }
-  
+
   // Cleanup memory cache periodically
   setInterval(() => cache.cleanup(), 60000);
 }
@@ -287,5 +299,5 @@ export default {
   createLazyObserver,
   PERFORMANCE_BUDGETS,
   checkPerformanceBudgets,
-  initPerformanceMonitoring
+  initPerformanceMonitoring,
 };

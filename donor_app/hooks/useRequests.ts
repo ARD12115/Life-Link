@@ -84,7 +84,7 @@ export function useRequests(bloodGroup?: string) {
     try {
       const { data, error } = await supabase
         .from('donor_responses')
-        .insert([{ request_id: requestId, donor_id: donorId, status: 'accepted' }])
+        .insert([{ request_id: requestId, donor_id: donorId, status: 'confirmed' }])
         .select();
 
       if (!error) {
@@ -102,7 +102,7 @@ export function useRequests(bloodGroup?: string) {
     isMounted.current = true;
     fetchRequests();
 
-    const channelName = `requests_realtime_${Math.random().toString(36).substring(7)}`;
+    const channelName = 'requests_realtime';
     const channelRef = supabase.channel(channelName);
 
     channelRef.on(

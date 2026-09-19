@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
-import { logger } from '../lib/logger'
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 export function useAdmin(user) {
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
-      setIsAdmin(false)
-      setLoading(false)
-      return
+      setIsAdmin(false);
+      setLoading(false);
+      return;
     }
 
     async function checkAdmin() {
@@ -19,23 +19,25 @@ export function useAdmin(user) {
           .from('profiles')
           .select('role')
           .eq('user_id', user.id)
-          .maybeSingle()
+          .maybeSingle();
 
         if (data && data.role === 'admin') {
-          setIsAdmin(true)
+          setIsAdmin(true);
         } else {
-          setIsAdmin(false)
+          setIsAdmin(false);
         }
       } catch (err) {
-        logger.error('Error checking admin status', { error: err instanceof Error ? err.message : 'Unknown' })
-        setIsAdmin(false)
+        logger.error('Error checking admin status', {
+          error: err instanceof Error ? err.message : 'Unknown',
+        });
+        setIsAdmin(false);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    checkAdmin()
-  }, [user])
+    checkAdmin();
+  }, [user]);
 
-  return { isAdmin, loading }
+  return { isAdmin, loading };
 }

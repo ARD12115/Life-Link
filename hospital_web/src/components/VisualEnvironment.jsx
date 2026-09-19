@@ -11,7 +11,7 @@ const VisualEnvironment = () => {
       id: i,
       top: `${(i * 17) % 100}%`,
       left: `${(i * 23) % 100}%`,
-      parallaxMultiplier: (1 + (i % 3))
+      parallaxMultiplier: 1 + (i % 3),
     }));
   }, []);
 
@@ -24,11 +24,14 @@ const VisualEnvironment = () => {
       if (containerRef.current) {
         const scrollPos = scrollRef.current;
         const rotationSpeed = 0.2;
-        
+
         // Directly update CSS properties via the ref to bypass React rendering
-        containerRef.current.style.setProperty('--scroll-rotation', `${scrollPos * rotationSpeed}deg`);
+        containerRef.current.style.setProperty(
+          '--scroll-rotation',
+          `${scrollPos * rotationSpeed}deg`
+        );
         containerRef.current.style.setProperty('--scroll-y-offset', `${scrollPos * 0.1}px`);
-        
+
         // Multiplier for parallax particles
         containerRef.current.style.setProperty('--scroll-pos', `${scrollPos}px`);
       }
@@ -45,7 +48,7 @@ const VisualEnvironment = () => {
   }, []);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className="visual-environment-root"
       style={{
@@ -61,11 +64,11 @@ const VisualEnvironment = () => {
         opacity: 'var(--aura-opacity)',
         '--scroll-rotation': '0deg',
         '--scroll-y-offset': '0px',
-        '--scroll-pos': '0px'
+        '--scroll-pos': '0px',
       }}
     >
       {/* 3D Focal Point: The Ruby Blood Cell */}
-      <div 
+      <div
         className="focal-cell"
         style={{
           position: 'absolute',
@@ -76,27 +79,30 @@ const VisualEnvironment = () => {
           height: '400px',
           background: 'var(--blood-ruby)',
           borderRadius: '50%',
-          boxShadow: 'inset -20px -20px 60px rgba(0,0,0,0.5), inset 20px 20px 60px rgba(255,255,255,0.2), 0 0 80px var(--blood-ruby)',
+          boxShadow:
+            'inset -20px -20px 60px rgba(0,0,0,0.5), inset 20px 20px 60px rgba(255,255,255,0.2), 0 0 80px var(--blood-ruby)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           filter: 'blur(1px)',
           opacity: 0.8,
           transition: 'opacity 0.5s ease',
-          willChange: 'transform' // GPU Hint
+          willChange: 'transform', // GPU Hint
         }}
       >
-        <div style={{
-          width: '200px',
-          height: '200px',
-          borderRadius: '50%',
-          background: 'rgba(0,0,0,0.2)',
-          boxShadow: 'inset 0 0 30px rgba(0,0,0,0.5)'
-        }} />
+        <div
+          style={{
+            width: '200px',
+            height: '200px',
+            borderRadius: '50%',
+            background: 'rgba(0,0,0,0.2)',
+            boxShadow: 'inset 0 0 30px rgba(0,0,0,0.5)',
+          }}
+        />
       </div>
 
       {/* Atmospheric Particles */}
-      {particles.map((p) => (
+      {particles.map(p => (
         <div
           key={p.id}
           style={{
@@ -110,7 +116,7 @@ const VisualEnvironment = () => {
             filter: 'blur(2px)',
             opacity: 0.3,
             transform: `translateY(calc(-0.1 * var(--scroll-pos) * ${p.parallaxMultiplier}))`,
-            willChange: 'transform'
+            willChange: 'transform',
           }}
         />
       ))}

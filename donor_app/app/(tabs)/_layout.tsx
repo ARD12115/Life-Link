@@ -1,8 +1,7 @@
-import React from 'react';
 import { Tabs } from 'expo-router';
 import { Theme } from '../../theme';
 import { useDonorAuth } from '../../hooks/useDonorAuth';
-import { Heart, Map as MapIcon, History, User, ShieldCheck } from 'lucide-react-native';
+import { Heart, Map as MapIcon, ShieldCheck, Settings } from 'lucide-react-native';
 
 export default function TabLayout() {
   const { role } = useDonorAuth();
@@ -32,7 +31,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Alerts',
-          tabBarIcon: ({ color }) => <Heart size={24} color={color} fill={color === Theme.colors.primary ? color : 'transparent'} />,
+          tabBarIcon: ({ color }) => <Heart size={24} color={color} />,
           headerTitle: 'LifeLink Emergencies',
         }}
       />
@@ -43,6 +42,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <MapIcon size={24} color={color} />,
           headerTitle: 'Nearby Network',
         }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <Settings size={24} color={color} />,
+          headerTitle: 'Settings',
+        }}
+        href="/settings"
       />
       <Tabs.Screen
         name="admin"

@@ -9,8 +9,8 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    
-    const applyTheme = (resolvedTheme) => {
+
+    const applyTheme = resolvedTheme => {
       root.setAttribute('data-theme', resolvedTheme);
       // Update body background immediately for smooth transition
       const bgColor = resolvedTheme === 'dark' ? '#000000' : '#F2F2F7';
@@ -18,12 +18,14 @@ export const ThemeProvider = ({ children }) => {
     };
 
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
       applyTheme(systemTheme);
 
       // Listener for system theme changes
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = (e) => applyTheme(e.matches ? 'dark' : 'light');
+      const handleChange = e => applyTheme(e.matches ? 'dark' : 'light');
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     } else {
@@ -33,11 +35,7 @@ export const ThemeProvider = ({ children }) => {
     localStorage.setItem('lifelink-theme', theme);
   }, [theme]);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
 };
 
 export const useTheme = () => useContext(ThemeContext);

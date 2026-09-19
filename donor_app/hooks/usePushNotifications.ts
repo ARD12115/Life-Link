@@ -6,7 +6,13 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { logger } from '../utils/logger';
+
+// Simple logger (inline to avoid missing import)
+const logger = {
+  info: (message: string, context?: any) => console.info(`[INFO] ${message}`, context ?? ''),
+  warn: (message: string, context?: any) => console.warn(`[WARN] ${message}`, context ?? ''),
+  error: (message: string, context?: any) => console.error(`[ERROR] ${message}`, context ?? ''),
+};
 
 // Configure how notifications behave when the app is OPEN
 // Gate by isExpoGo since Expo SDK 53 removed this from Expo Go

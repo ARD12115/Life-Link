@@ -5,43 +5,43 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { logger } from '../lib/logger';
 
+/** @typedef {Object} QueryOptions
+ * @property {number} [staleTime=30000] - Time in ms before data becomes stale
+ * @property {number} [cacheTime=300000] - Time in ms before unused cache is deleted
+ * @property {boolean} [refetchOnWindowFocus=true]
+ * @property {number} [refetchInterval=0] - Auto-refetch interval in ms (0 = disabled)
+ * @property {boolean} [enabled=true] - Enable/disable query
+ */
+
+/** @typedef {Object} QueryResult
+ * @property {any} data
+ * @property {Error|null} error
+ * @property {boolean} isLoading
+ * @property {boolean} isFetching
+ * @property {boolean} isStale
+ * @property {Function} refetch
+ * @property {Function} mutate
+ */
+
 // In-memory query cache
 const queryCache = new Map();
 
-interface QueryOptions {
-  staleTime?: number;        // Time in ms before data becomes stale (default: 30s)
-  cacheTime?: number;        // Time in ms before unused cache is deleted (default: 5min)
-  refetchOnWindowFocus?: boolean;
-  refetchInterval?: number;  // Auto-refetch interval in ms (default: disabled)
-  enabled?: boolean;         // Enable/disable query
-}
-
-interface QueryResult<T> {
-  data: T | null;
-  error: Error | null;
-  isLoading: boolean;
-  isFetching: boolean;
-  isStale: boolean;
-  refetch: () => Promise<T | null>;
-  mutate: (newData: T | ((old: T) => T)) => void;
-}
-
 /**
  * Lightweight query client for Supabase with caching, deduplication, and auto-refetch
- * 
+ *
  * Usage:
  * const { data, isLoading, refetch } = useQuery(
- *   ['donors', bloodGroup], 
+ *   ['donors', bloodGroup],
  *   () => supabase.from('donors').select('*').eq('blood_group', bloodGroup)
  * );
  */
 export function useQuery(queryKey, queryFn, options = {}) {
   const {
-    staleTime = 30000,      // 30 seconds
-    cacheTime = 300000,     // 5 minutes
+    staleTime = 30000, // 30 seconds
+    cacheTime = 300000, // 5 minutes
     refetchOnWindowFocus = true,
-    refetchInterval = 0,    // 0 = disabled
-    enabled = true
+    refetchInterval = 0, // 0 = disabled
+    enabled = true,
   } = options;
 
   const cacheKey = JSON.stringify(queryKey);
@@ -50,13 +50,19 @@ export function useQuery(queryKey, queryFn, options = {}) {
     error: null,
     isLoading: true,
     isFetching: false,
-    isStale: true
+    isStale: true,
   });
 
   const queryFnRef = useRef(queryFn);
   queryFnRef.current = queryFn;
 
-  const optionsRef = useRef({ staleTime, cacheTime, refetchOnWindowFocus, refetchInterval, enabled });
+  const optionsRef = useRef({
+    staleTime,
+    cacheTime,
+    refetchOnWindowFocus,
+    refetchInterval,
+    enabled,
+  });
   optionsRef.current = { staleTime, cacheTime, refetchOnWindowFocus, refetchInterval, enabled };
 
   const cleanupRef = useRef(null);
@@ -66,7 +72,7 @@ export function useQuery(queryKey, queryFn, options = {}) {
   const getCached = useCallback(() => {
     const cached = queryCache.get(cacheKey);
     if (!cached) return null;
-    
+
     const now = Date.now();
     if (now > cached.expires) {
       queryCache.delete(cacheKey);
@@ -76,59 +82,68 @@ export function useQuery(queryKey, queryFn, options = {}) {
   }, [cacheKey]);
 
   // Set cache
-  const setCache = useCallback((data, customCacheTime) => {
-    const ttl = customCacheTime ?? optionsRef.current.cacheTime;
-    queryCache.set(cacheKey, {
-      data,
-      timestamp: Date.now(),
-      expires: Date.now() + ttl
-    });
-  }, [cacheKey]);
+  const setCache = useCallback(
+    (data, customCacheTime) => {
+      const ttl = customCacheTime ?? optionsRef.current.cacheTime;
+      queryCache.set(cacheKey, {
+        data,
+        timestamp: Date.now(),
+        expires: Date.now() + ttl,
+      });
+    },
+    [cacheKey]
+  );
 
   // Check if data is stale
-  const isStale = useCallback((cached) => {
+  const isStale = useCallback(cached => {
     if (!cached) return true;
     return Date.now() - cached.timestamp > optionsRef.current.staleTime;
   }, []);
 
   // Execute query
-  const executeQuery = useCallback(async (isBackground = false) => {
-    if (!optionsRef.current.enabled) return null;
+  const executeQuery = useCallback(
+    async (isBackground = false) => {
+      if (!optionsRef.current.enabled) return null;
 
-    if (!isBackground) {
-      setState(prev => ({ ...prev, isLoading: true, isFetching: true }));
-    } else {
-      setState(prev => ({ ...prev, isFetching: true }));
-    }
+      if (!isBackground) {
+        setState(prev => ({ ...prev, isLoading: true, isFetching: true }));
+      } else {
+        setState(prev => ({ ...prev, isFetching: true }));
+      }
 
-    try {
-      const { data, error } = await queryFnRef.current();
-      
-      if (error) throw error;
-      
-      setCache(data);
-      setState({
-        data,
-        error: null,
-        isLoading: false,
-        isFetching: false,
-        isStale: false
-      });
-      
-      logger.db('Query executed', { queryKey: cacheKey, rows: Array.isArray(data) ? data.length : 1 });
-      return data;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Unknown error');
-      setState(prev => ({
-        ...prev,
-        error,
-        isLoading: false,
-        isFetching: false
-      }));
-      logger.error('Query failed', { queryKey: cacheKey, error: error.message });
-      return null;
-    }
-  }, [cacheKey, setCache]);
+      try {
+        const { data, error } = await queryFnRef.current();
+
+        if (error) throw error;
+
+        setCache(data);
+        setState({
+          data,
+          error: null,
+          isLoading: false,
+          isFetching: false,
+          isStale: false,
+        });
+
+        logger.db('Query executed', {
+          queryKey: cacheKey,
+          rows: Array.isArray(data) ? data.length : 1,
+        });
+        return data;
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Unknown error');
+        setState(prev => ({
+          ...prev,
+          error,
+          isLoading: false,
+          isFetching: false,
+        }));
+        logger.error('Query failed', { queryKey: cacheKey, error: error.message });
+        return null;
+      }
+    },
+    [cacheKey, setCache]
+  );
 
   // Refetch function
   const refetch = useCallback(async () => {
@@ -136,14 +151,17 @@ export function useQuery(queryKey, queryFn, options = {}) {
   }, [executeQuery]);
 
   // Mutate cache directly
-  const mutate = useCallback((newData) => {
-    const cached = getCached();
-    if (!cached) return;
-    
-    const data = typeof newData === 'function' ? newData(cached.data) : newData;
-    setCache(data);
-    setState(prev => ({ ...prev, data, isStale: false }));
-  }, [getCached, setCache]);
+  const mutate = useCallback(
+    newData => {
+      const cached = getCached();
+      if (!cached) return;
+
+      const data = typeof newData === 'function' ? newData(cached.data) : newData;
+      setCache(data);
+      setState(prev => ({ ...prev, data, isStale: false }));
+    },
+    [getCached, setCache]
+  );
 
   // Initial fetch
   useEffect(() => {
@@ -153,7 +171,7 @@ export function useQuery(queryKey, queryFn, options = {}) {
     }
 
     const cached = getCached();
-    
+
     if (cached) {
       // Use cached data immediately
       setState({
@@ -161,9 +179,9 @@ export function useQuery(queryKey, queryFn, options = {}) {
         error: null,
         isLoading: false,
         isFetching: false,
-        isStale: isStale(cached)
+        isStale: isStale(cached),
       });
-      
+
       // Refetch in background if stale
       if (isStale(cached)) {
         executeQuery(true);
@@ -220,7 +238,7 @@ export function useQuery(queryKey, queryFn, options = {}) {
     refetch,
     mutate,
     // Alias for compatibility
-    fetch: refetch
+    fetch: refetch,
   };
 }
 
@@ -233,24 +251,27 @@ export function useMutation(mutationFn, options = {}) {
     error: null,
     isLoading: false,
     isSuccess: false,
-    isError: false
+    isError: false,
   });
 
-  const mutate = useCallback(async (variables) => {
-    setState({ data: null, error: null, isLoading: true, isSuccess: false, isError: false });
-    
-    try {
-      const data = await mutationFn(variables);
-      setState({ data, error: null, isLoading: false, isSuccess: true, isError: false });
-      options.onSuccess?.(data);
-      return data;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error('Unknown error');
-      setState({ data: null, error: err, isLoading: false, isSuccess: false, isError: true });
-      options.onError?.(err);
-      return null;
-    }
-  }, [mutationFn, options]);
+  const mutate = useCallback(
+    async variables => {
+      setState({ data: null, error: null, isLoading: true, isSuccess: false, isError: false });
+
+      try {
+        const data = await mutationFn(variables);
+        setState({ data, error: null, isLoading: false, isSuccess: true, isError: false });
+        options.onSuccess?.(data);
+        return data;
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error('Unknown error');
+        setState({ data: null, error: err, isLoading: false, isSuccess: false, isError: true });
+        options.onError?.(err);
+        return null;
+      }
+    },
+    [mutationFn, options]
+  );
 
   const reset = useCallback(() => {
     setState({ data: null, error: null, isLoading: false, isSuccess: false, isError: false });
@@ -287,25 +308,28 @@ export function clearQueryCache() {
 export async function prefetchQuery(queryKey, queryFn, options = {}) {
   const cacheKey = JSON.stringify(queryKey);
   const cached = queryCache.get(cacheKey);
-  
+
   if (cached && Date.now() < cached.expires) {
     return cached.data;
   }
-  
+
   try {
     const { data, error } = await queryFn();
     if (error) throw error;
-    
+
     const ttl = options.cacheTime ?? 300000;
     queryCache.set(cacheKey, {
       data,
       timestamp: Date.now(),
-      expires: Date.now() + ttl
+      expires: Date.now() + ttl,
     });
-    
+
     return data;
   } catch (err) {
-    logger.error('Prefetch failed', { queryKey: cacheKey, error: err instanceof Error ? err.message : 'Unknown' });
+    logger.error('Prefetch failed', {
+      queryKey: cacheKey,
+      error: err instanceof Error ? err.message : 'Unknown',
+    });
     return null;
   }
 }
@@ -315,5 +339,5 @@ export default {
   useMutation,
   invalidateQueries,
   clearQueryCache,
-  prefetchQuery
+  prefetchQuery,
 };

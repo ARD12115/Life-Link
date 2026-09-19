@@ -209,10 +209,11 @@ export default function DonorDashboard() {
            )}
         </View>
 
-        {/* Testing / Admin Bypass (Only for Dev) */}
-        <TouchableOpacity style={styles.devBtn} onPress={sendTestPush}>
-           <Text style={styles.devBtnText}>Simulate Emergency Alert</Text>
-        </TouchableOpacity>
+        {__DEV__ ? (
+          <TouchableOpacity style={styles.devBtn} onPress={sendTestPush}>
+             <Text style={styles.devBtnText}>Simulate Emergency Alert</Text>
+          </TouchableOpacity>
+        ) : null}
 
       </ScrollView>
     </SafeAreaView>

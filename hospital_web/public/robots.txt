@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and sensitive paths
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard/
+Disallow: /settings/
+
+# Allow important files
+Allow: /sitemap.xml
+Allow: /privacy.html
+Allow: /terms.html
+Allow: /affiliations.html
+Allow: /404.html
+
+# Sitemap location
+Sitemap: https://lifelink.example/sitemap.xml

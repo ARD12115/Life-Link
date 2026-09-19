@@ -1,53 +1,16 @@
 import { StyleSheet, View, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useHospitals } from '../../hooks/useDonors';
 import { Theme } from '../../theme';
 import { Hospital, Droplets, MapPin, Navigation } from 'lucide-react-native';
 
-// Custom Map Style (Dark Mode)
-const mapStyle = [
-  {
-    "elementType": "geometry",
-    "stylers": [{"color": "#212121"}]
-  },
-  {
-    "elementType": "labels.icon",
-    "stylers": [{"visibility": "off"}]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [{"color": "#757575"}]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [{"color": "#212121"}]
-  },
-  {
-    "featureType": "administrative",
-    "elementType": "geometry",
-    "stylers": [{"color": "#757575"}]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "geometry",
-    "stylers": [{"color": "#181818"}]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry.fill",
-    "stylers": [{"color": "#2c2c2c"}]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [{"color": "#000000"}]
-  }
-];
+// Custom Map Style (Dark Mode) - removed as we use default provider
+// const mapStyle = [ ... ];
 
 export default function MapScreen() {
   const { hospitals, loading: hospitalsLoading } = useHospitals();
   // Filter for hospitals that actually have active requests (Optional: would need useRequests hook here)
-  
+
   if (hospitalsLoading) {
     return (
       <View style={[styles.container, styles.center]}>
@@ -59,9 +22,8 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <MapView
-        provider={PROVIDER_GOOGLE}
+        provider={PROVIDER_DEFAULT}
         style={styles.map}
-        customMapStyle={mapStyle}
         initialRegion={{
           latitude: 19.0760,
           longitude: 72.8777,

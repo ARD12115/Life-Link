@@ -47,7 +47,7 @@ create table if not exists blood_requests (
   urgency text not null default 'Routine'
     check (urgency in ('Routine','Urgent','Critical')),
   status text not null default 'open'
-    check (status in ('open','in_progress','filled','cancelled')),
+    check (status in ('open','in_progress','closed','cancelled')),
   notes text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
