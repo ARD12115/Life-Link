@@ -7,6 +7,7 @@ import Auth from './components/Auth';
 import LandingPage from './components/LandingPage';
 import ErrorBoundary from './components/ErrorBoundary';
 import { Helmet } from 'react-helmet';
+import CookieConsent from './components/CookieConsent';
 import { useTheme } from './context/ThemeContext';
 import { useAdmin } from './hooks/useAdmin';
 import { supabase } from './lib/supabase';
@@ -101,6 +102,7 @@ function AppLayout({ children, session, isAdmin }) {
         </div>
       </header>
 
+      <CookieConsent />
       {children}
     </div>
   );
