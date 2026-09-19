@@ -287,12 +287,12 @@ cd C:/LifeLink && rm -rf node_modules hospital_web/node_modules donor_app/node_m
 
 ## 📚 Essential Reading Order
 
-1. **README.md** — Architecture & quick start
-2. **SUPABASE_SETUP_GUIDE.md** — Database, Auth, Edge Functions
-3. **FEATURES_WALKTHROUGH.md** — Complete feature inventory
-4. **MOBILE_STRATEGY_PLAN.md** — Platform decisions & roadmap
-5. **TROUBLESHOOTING.md** — Known issues & fixes
-6. **SECURITY_PENTEST_REPORT.md** — Security posture
+1. **docs/README.md** — Architecture & quick start
+2. **docs/SUPABASE_SETUP_GUIDE.md** — Database, Auth, Edge Functions
+3. **docs/FEATURES_WALKTHROUGH.md** — Complete feature inventory
+4. **docs/MOBILE_STRATEGY_PLAN.md** — Platform decisions & roadmap
+5. **docs/TROUBLESHOOTING.md** — Known issues & fixes
+6. **docs/SECURITY_PENTEST_REPORT.md** — Security posture
 7. This file — Code patterns & conventions
 
 ---

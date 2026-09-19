@@ -31,7 +31,7 @@ LifeLink/
 ├── scripts/                   # Shared startup scripts
 │   └── get-ip.js              # Detects LAN IP for Expo QR code
 ├── supabase_schema.sql        # Single source of truth for DB
-├── README.md
+├── docs/README.md
 ├── package.json               # Root: concurrently + install-all
 └── *.md                       # All documentation
 ```
@@ -192,15 +192,15 @@ SELECT phone FROM donors;  -- Should return NULL (policy)
 
 | File | Purpose |
 |------|---------|
-| **README.md** | Architecture, quick start, links |
-| **FEATURES_WALKTHROUGH.md** | Complete feature inventory & testing steps |
-| **SUPABASE_SETUP_GUIDE.md** | Database, Auth, Realtime, Edge Functions |
-| **MOBILE_STRATEGY_PLAN.md** | Platform decisions, roadmap, CLI setup |
-| **TROUBLESHOOTING.md** | Common issues & fixes |
-| **CONTRIBUTING.md** | Git workflow, PR requirements, standards |
-| **DEV_SKILL_GUIDELINES.md** | Code patterns, real-time rules, security |
-| **SECURITY_PENTEST_REPORT.md** | Security audit & hardening status |
-| **FRESH_INTEGRATION_CHECKLIST.md** | Fresh environment verification |
+| **docs/README.md** | Architecture, quick start, links |
+| **docs/FEATURES_WALKTHROUGH.md** | Complete feature inventory & testing steps |
+| **docs/SUPABASE_SETUP_GUIDE.md** | Database, Auth, Realtime, Edge Functions |
+| **docs/MOBILE_STRATEGY_PLAN.md** | Platform decisions, roadmap, CLI setup |
+| **docs/TROUBLESHOOTING.md** | Common issues & fixes |
+| **docs/CONTRIBUTING.md** | Git workflow, PR requirements, standards |
+| **docs/DEV_SKILL_GUIDELINES.md** | Code patterns, real-time rules, security |
+| **docs/SECURITY_PENTEST_REPORT.md** | Security audit & hardening status |
+| **docs/FRESH_INTEGRATION_CHECKLIST.md** | Fresh environment verification |
 
 ---
 

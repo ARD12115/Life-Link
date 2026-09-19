@@ -1,5 +1,5 @@
 -- Fix: Add missing is_verified column to hospitals table
--- Run this FIRST in Supabase SQL Editor before running database_migration_v2.1.sql
+-- Run this FIRST in Supabase SQL Editor before running migrations/database_migration_v2.1.sql
 
 -- Add is_verified column if it doesn't exist
 ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS is_verified boolean DEFAULT false;

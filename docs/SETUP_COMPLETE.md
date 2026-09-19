@@ -20,6 +20,6 @@ Congratulations! The LifeLink platform has been reorganized, secured, and prepar
 
 ## 🚀 Next Steps
 > [!IMPORTANT]
-> To continue developing the mobile app, navigate to the `donor_app` folder and review the **[MOBILE_STRATEGY_PLAN.md](./MOBILE_STRATEGY_PLAN.md)**.
+> To continue developing the mobile app, navigate to the `donor_app` folder and review the **[docs/MOBILE_STRATEGY_PLAN.md](./docs/MOBILE_STRATEGY_PLAN.md)**.
 
 **Happy Coding! 🩸**

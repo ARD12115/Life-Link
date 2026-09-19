@@ -92,7 +92,7 @@ docs: update Supabase setup guide for Edge Functions
 **Required:**
 - [ ] Code compiles without warnings (`npm run build` / `npx tsc --noEmit`)
 - [ ] **Visual demo**: Screenshot or 30-sec screen recording for ANY UI change
-- [ ] Related docs updated (this file, FEATURES_WALKTHROUGH.md, etc.)
+- [ ] Related docs updated (this file, docs/FEATURES_WALKTHROUGH.md, etc.)
 - [ ] No hardcoded secrets or console.log PII
 
 **PR Template:**
@@ -170,10 +170,10 @@ For any PR touching data access:
 
 ## 🆘 Getting Help
 
-- **Architecture questions**: Check `MOBILE_STRATEGY_PLAN.md`
-- **Supabase patterns**: Check `SUPABASE_SETUP_GUIDE.md`
-- **Bugs**: Check `TROUBLESHOOTING.md` first
-- **Security**: Check `SECURITY_PENTEST_REPORT.md`
+- **Architecture questions**: Check `docs/MOBILE_STRATEGY_PLAN.md`
+- **Supabase patterns**: Check `docs/SUPABASE_SETUP_GUIDE.md`
+- **Bugs**: Check `docs/TROUBLESHOOTING.md` first
+- **Security**: Check `docs/SECURITY_PENTEST_REPORT.md`
 
 ---
 

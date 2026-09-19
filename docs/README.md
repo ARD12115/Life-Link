@@ -100,14 +100,14 @@ This starts:
 
 | File | Purpose |
 |------|---------|
-| **[FEATURES_WALKTHROUGH.md](./FEATURES_WALKTHROUGH.md)** | Complete feature guide & testing steps |
-| **[SUPABASE_SETUP_GUIDE.md](./SUPABASE_SETUP_GUIDE.md)** | Database schema, Auth, Realtime, Edge Functions |
-| **[MOBILE_STRATEGY_PLAN.md](./MOBILE_STRATEGY_PLAN.md)** | Architecture decisions & platform roadmap |
-| **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** | Common issues & fixes |
-| **[CONTRIBUTING.md](./CONTRIBUTING.md)** | Contribution guidelines & standards |
-| **[DEV_SKILL_GUIDELINES.md](./DEV_SKILL_GUIDELINES.md)** | Code patterns, real-time rules, security practices |
-| **[SECURITY_PENTEST_REPORT.md](./SECURITY_PENTEST_REPORT.md)** | Security audit results & hardening status |
-| **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** | Command cheat sheet & key links |
+| **[docs/FEATURES_WALKTHROUGH.md](./docs/FEATURES_WALKTHROUGH.md)** | Complete feature guide & testing steps |
+| **[docs/SUPABASE_SETUP_GUIDE.md](./docs/SUPABASE_SETUP_GUIDE.md)** | Database schema, Auth, Realtime, Edge Functions |
+| **[docs/MOBILE_STRATEGY_PLAN.md](./docs/MOBILE_STRATEGY_PLAN.md)** | Architecture decisions & platform roadmap |
+| **[docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** | Common issues & fixes |
+| **[docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md)** | Contribution guidelines & standards |
+| **[docs/DEV_SKILL_GUIDELINES.md](./docs/DEV_SKILL_GUIDELINES.md)** | Code patterns, real-time rules, security practices |
+| **[docs/SECURITY_PENTEST_REPORT.md](./docs/SECURITY_PENTEST_REPORT.md)** | Security audit results & hardening status |
+| **[docs/QUICK_REFERENCE.md](./docs/QUICK_REFERENCE.md)** | Command cheat sheet & key links |
 
 ---
 
@@ -126,7 +126,7 @@ Test the full flow without Twilio, VAPID, or Mapbox:
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
+See [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) for:
 - Branching strategy
 - PR requirements (screenshots/video required for UI changes)
 - Security-first review process

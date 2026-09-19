@@ -82,6 +82,12 @@ self.addEventListener('fetch', (event) => {
 
 // Network first strategy
 async function networkFirst(request) {
+  // Skip unsupported schemes (chrome-extension, etc.)
+  const url = new URL(request.url);
+  if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'safari-extension:') {
+    return fetch(request);
+  }
+  
   try {
     const response = await fetch(request);
     
@@ -110,6 +116,12 @@ async function networkFirst(request) {
 
 // Cache first strategy
 async function cacheFirst(request) {
+  // Skip unsupported schemes
+  const url = new URL(request.url);
+  if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'safari-extension:') {
+    return fetch(request);
+  }
+  
   const cachedResponse = await caches.match(request);
   if (cachedResponse) {
     // Update cache in background

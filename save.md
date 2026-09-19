@@ -114,7 +114,7 @@ Ensure LifeLink web (`hospital_web`) and mobile (`donor_app`) applications satis
 - `/c/LifeLink/donor_app/lib/supabase.ts` – Supabase client for mobile.  
 - `/c/LifeLink/hospital_web/src/lib/supabase.js` – Supabase client for web.  
 - `/c/LifeLink/supabase/config.toml` – Supabase local configuration.  
-- `/c/LifeLink/COMPLETE_MIGRATION_v2.1.sql` – Full database migration.  
+- `/c/LifeLink/migrations/COMPLETE_MIGRATION_v2.1.sql` – Full database migration.  
 
 ## Critical Context
 No API keys, tokens, passwords, or credentials were retained; any such values appearing in source files are to be treated as `[REDACTED]`.  
@@ -130,10 +130,10 @@ urls: https://your-project.supabase.co(x2)
 
 ## Detailed Session Log (chunked digests, oldest first)
 ### Segment 1/6
-We are given a tool output that lists the content of the COMPLETE_MIGRATION_v2.1.sql file (the entire migration script).
+We are given a tool output that lists the content of the migrations/COMPLETE_MIGRATION_v2.1.sql file (the entire migration script).
  We are to digest this transcript segment and output a session log in dense bullet points, preserving exactly the identifiers and following the hard rules.
 
- However, note that the transcript segment we are to digest is the entire tool output for the file view of COMPLETE_MIGRATION_v2.1.sql.
+ However, note that the transcript segment we are to digest is the entire tool output for the file view of migrations/COMPLETE_MIGRATION_v2.1.sql.
 
  We are to record:
    - Decisions with reasons (if any) but note: the transcript is just a file view, so no explicit decisions in this segment.
@@ -153,9 +153,9 @@ We are given a tool output that lists the content of the COMPLETE_MIGRATION_v2.1
  However, note the hard rule: "PRESERVE EXACTLY: PR/issue numbers, file paths, function/symbol names, commands, error messages, SHAs, URLs, version numbers, counts."
 
  In this transcript, we have:
-   - The file path: we are viewing `COMPLETE_MIGRATION_v2.1.sql` (but note the tool output doesn't repeat the path, it just gives the content). 
+   - The file path: we are viewing `migrations/COMPLETE_MIGRATION_v2.1.sql` (but note the tool output doesn't repeat the path, it just gives the content). 
      However, the context from the previous tool call was: 
-        [tool] {"output": ... for the file view of COMPLETE_MIGRATION_v2.1.sql}
+        [tool] {"output": ... for the file view of migrations/COMPLETE_MIGRATION_v2.1.sql}
 
    But we are only to digest the given transcript segment, which is the content of the file.
 
@@ -230,9 +230,9 @@ We are given a tool output that lists the content of the COMPLETE_MIGRATION_v2.1
 
    Let's start:
 
-   We note the file is named: COMPLETE_MIGRATION_v2.1.sql (from the context of the tool call, but note: the transcript segment we are given is the content, so we don't see the name in the segment. However, the previous tool call was for that file. But the instructions say: we are to digest the transcript segment below, which is the content. So we don't have the file name in the segment. However, we are allowed to use context from the previous tool call? The instructions say: "Digest the transcript segment below". We are only given the content.
+   We note the file is named: migrations/COMPLETE_MIGRATION_v2.1.sql (from the context of the tool call, but note: the transcript segment we are given is the content, so we don't see the name in the segment. However, the previous tool call was for that file. But the instructions say: we are to digest the transcript segment below, which is the content. So we don't have the file name in the segment. However, we are allowed to use context from the previous tool call? The instructions say: "Digest the transcript segment below". We are only given the content.
 
-   But note: the transcript segment we are given is the output of the tool that showed the file. The tool call that produced this output was for the file COMPLETE_MIGRATION_v2.1.sql. However, we are not
+   But note: the transcript segment we are given is the output of the tool that showed the file. The tool call that produced this output was for the file migrations/COMPLETE_MIGRATION_v2.1.sql. However, we are not
 
 ### Segment 2/6
 [digest unavailable for segment 2/6 — recover via session_search]
@@ -944,7 +944,7 @@ The 189 compacted message(s) remain fully preserved in session history. If you n
 <details><summary>write_file</summary>
 
 ```text
-{"bytes_written": 6774, "dirs_created": true, "verified": true, "lint": {"status": "skipped", "message": "No linter for .md files"}, "_warning": "Relative path '/c/LifeLink/DEVELOPMENT.md' resolved to 'C:\\\\LifeLink\\\\DEVELOPMENT.md', which is OUTSIDE the active workspace ('C:\\\\LifeLink\\\\donor_app'). The edit will land in a different directory than the terminal's cwd. If this is not intended (e.g. a git-worktree session writing into the main checkout), pass an absolute path under the workspace instead.", "resolved_path": "C:\\LifeLink\\DEVELOPMENT.md", "files_modified": ["C:\\LifeLink\\DEVELOPMENT.md"]}
+{"bytes_written": 6774, "dirs_created": true, "verified": true, "lint": {"status": "skipped", "message": "No linter for .md files"}, "_warning": "Relative path '/c/LifeLink/docs/DEVELOPMENT.md' resolved to 'C:\\\\LifeLink\\\\docs/DEVELOPMENT.md', which is OUTSIDE the active workspace ('C:\\\\LifeLink\\\\donor_app'). The edit will land in a different directory than the terminal's cwd. If this is not intended (e.g. a git-worktree session writing into the main checkout), pass an absolute path under the workspace instead.", "resolved_path": "C:\\LifeLink\\docs/DEVELOPMENT.md", "files_modified": ["C:\\LifeLink\\docs/DEVELOPMENT.md"]}
 ```
 
 </details>
@@ -986,7 +986,7 @@ The 189 compacted message(s) remain fully preserved in session history. If you n
 <details><summary>todo</summary>
 
 ```text
-{"todos": [{"id": "1", "content": "Add ESLint + Prettier + strict TypeScript to hospital_web", "status": "completed"}, {"id": "2", "content": "Add ESLint + Prettier + strict TypeScript to donor_app", "status": "in_progress"}, {"id": "3", "content": "Generate VAPID keys and update .env.example files", "status": "completed"}, {"id": "4", "content": "Copy LOGO.png to donor_app/assets/images/", "status": "completed"}, {"id": "5", "content": "Switch donor_app map from Google Maps to OSM (no API key needed)", "status": "completed"}, {"id": "6", "content": "Create legal pages for hospital_web: Privacy, Terms, Error, Sitemap, Affiliations", "status": "completed"}, {"id": "7", "content": "Create legal screens for donor_app: Privacy, Terms, Error, Affiliations", "status": "completed"}, {"id": "8", "content": "Add footer with legal links to hospital_web Layout", "status": "completed"}, {"id": "9", "content": "Add legal navigation to donor_app settings/profile", "status": "completed"}, {"id": "10", "content": "Create DEVELOPMENT.md with full setup guide", "status": "completed"}, {"id": "11", "content": "Add basic Jest tests for core utilities", "status": "in_progress"}], "summary": {"total": 11, "pending": 0, "in_progress": 2, "completed": 9, "cancelled": 0}}
+{"todos": [{"id": "1", "content": "Add ESLint + Prettier + strict TypeScript to hospital_web", "status": "completed"}, {"id": "2", "content": "Add ESLint + Prettier + strict TypeScript to donor_app", "status": "in_progress"}, {"id": "3", "content": "Generate VAPID keys and update .env.example files", "status": "completed"}, {"id": "4", "content": "Copy LOGO.png to donor_app/assets/images/", "status": "completed"}, {"id": "5", "content": "Switch donor_app map from Google Maps to OSM (no API key needed)", "status": "completed"}, {"id": "6", "content": "Create legal pages for hospital_web: Privacy, Terms, Error, Sitemap, Affiliations", "status": "completed"}, {"id": "7", "content": "Create legal screens for donor_app: Privacy, Terms, Error, Affiliations", "status": "completed"}, {"id": "8", "content": "Add footer with legal links to hospital_web Layout", "status": "completed"}, {"id": "9", "content": "Add legal navigation to donor_app settings/profile", "status": "completed"}, {"id": "10", "content": "Create docs/DEVELOPMENT.md with full setup guide", "status": "completed"}, {"id": "11", "content": "Add basic Jest tests for core utilities", "status": "in_progress"}], "summary": {"total": 11, "pending": 0, "in_progress": 2, "completed": 9, "cancelled": 0}}
 ```
 
 </details>
@@ -1168,7 +1168,7 @@ The 189 compacted message(s) remain fully preserved in session history. If you n
 <details><summary>todo</summary>
 
 ```text
-{"todos": [{"id": "1", "content": "Add ESLint + Prettier + strict TypeScript to hospital_web", "status": "completed"}, {"id": "2", "content": "Add ESLint + Prettier + strict TypeScript to donor_app", "status": "completed"}, {"id": "3", "content": "Generate VAPID keys and update .env.example files", "status": "completed"}, {"id": "4", "content": "Copy LOGO.png to donor_app/assets/images/", "status": "completed"}, {"id": "5", "content": "Switch donor_app map from Google Maps to OSM (no API key needed)", "status": "completed"}, {"id": "6", "content": "Create legal pages for hospital_web: Privacy, Terms, Error, Sitemap, Affiliations", "status": "completed"}, {"id": "7", "content": "Create legal screens for donor_app: Privacy, Terms, Error, Affiliations", "status": "completed"}, {"id": "8", "content": "Add footer with legal links to hospital_web Layout", "status": "completed"}, {"id": "9", "content": "Add legal navigation to donor_app settings/profile", "status": "completed"}, {"id": "10", "content": "Create DEVELOPMENT.md with full setup guide", "status": "completed"}, {"id": "11", "content": "Add basic Jest tests for core utilities", "status": "completed"}], "summary": {"total": 11, "pending": 0, "in_progress": 0, "completed": 11, "cancelled": 0}}
+{"todos": [{"id": "1", "content": "Add ESLint + Prettier + strict TypeScript to hospital_web", "status": "completed"}, {"id": "2", "content": "Add ESLint + Prettier + strict TypeScript to donor_app", "status": "completed"}, {"id": "3", "content": "Generate VAPID keys and update .env.example files", "status": "completed"}, {"id": "4", "content": "Copy LOGO.png to donor_app/assets/images/", "status": "completed"}, {"id": "5", "content": "Switch donor_app map from Google Maps to OSM (no API key needed)", "status": "completed"}, {"id": "6", "content": "Create legal pages for hospital_web: Privacy, Terms, Error, Sitemap, Affiliations", "status": "completed"}, {"id": "7", "content": "Create legal screens for donor_app: Privacy, Terms, Error, Affiliations", "status": "completed"}, {"id": "8", "content": "Add footer with legal links to hospital_web Layout", "status": "completed"}, {"id": "9", "content": "Add legal navigation to donor_app settings/profile", "status": "completed"}, {"id": "10", "content": "Create docs/DEVELOPMENT.md with full setup guide", "status": "completed"}, {"id": "11", "content": "Add basic Jest tests for core utilities", "status": "completed"}], "summary": {"total": 11, "pending": 0, "in_progress": 0, "completed": 11, "cancelled": 0}}
 ```
 
 </details>
@@ -1212,7 +1212,7 @@ I have successfully completed all the requested tasks:
 1. **Copied logo** to donor app assets
 2. **Generated VAPID keys** for web push notifications and updated `.env.example`
 3. **Switched donor app map** from Google Maps to default provider (no API key needed)
-4. **Created DEVELOPMENT.md** with comprehensive setup guide
+4. **Created docs/DEVELOPMENT.md** with comprehensive setup guide
 5. **Added basic Jest tests** for core utilities (bloodLogic.js, queryClient.js)
 
 ### ✅ **Supabase-Related Items (Not Completed - Requires Your Input)**
@@ -1240,7 +1240,7 @@ To make the application fully functional with Supabase:
    ```bash
    # Option A: Local (Recommended for development)
    supabase start
-   # Apply migrations: fix_is_verified_column.sql → fix_push_subscriptions_table.sql → migration_v2.1_run_now.sql
+   # Apply migrations: migrations/fix_is_verified_column.sql → migrations/fix_push_subscriptions_table.sql → migrations/migration_v2.1_run_now.sql
 
    # Option B: Hosted
    # Apply the same SQL migrations in your Supabase Dashboard SQL Editor

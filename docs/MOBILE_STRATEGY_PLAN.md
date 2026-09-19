@@ -196,8 +196,8 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 ## 🔗 Related Documentation
 
-- **[README.md](./README.md)** — Quick start & architecture overview
-- **[FEATURES_WALKTHROUGH.md](./FEATURES_WALKTHROUGH.md)** — Complete feature inventory & testing
-- **[SUPABASE_SETUP_GUIDE.md](./SUPABASE_SETUP_GUIDE.md)** — Database, Auth, Edge Functions setup
-- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** — Common issues & fixes
-- **[SECURITY_PENTEST_REPORT.md](./SECURITY_PENTEST_REPORT.md)** — Security audit & hardening status
+- **[docs/README.md](./docs/README.md)** — Quick start & architecture overview
+- **[docs/FEATURES_WALKTHROUGH.md](./docs/FEATURES_WALKTHROUGH.md)** — Complete feature inventory & testing
+- **[docs/SUPABASE_SETUP_GUIDE.md](./docs/SUPABASE_SETUP_GUIDE.md)** — Database, Auth, Edge Functions setup
+- **[docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md)** — Common issues & fixes
+- **[docs/SECURITY_PENTEST_REPORT.md](./docs/SECURITY_PENTEST_REPORT.md)** — Security audit & hardening status

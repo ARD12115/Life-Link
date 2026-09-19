@@ -74,7 +74,7 @@ EXPO_PUBLIC_APP_URL=http://localhost:3001
 2. Initialize Supabase: `supabase init` (run in project root)
 3. Start Supabase: `supabase start`
 4. Apply migrations:
-   - Copy the SQL files from the root directory (`fix_is_verified_column.sql`, `fix_push_subscriptions_table.sql`, `migration_v2.1_run_now.sql`) to the Supabase SQL editor or run via CLI:
+   - Copy the SQL files from the root directory (`migrations/fix_is_verified_column.sql`, `migrations/fix_push_subscriptions_table.sql`, `migrations/migration_v2.1_run_now.sql`) to the Supabase SQL editor or run via CLI:
    ```bash
    supabase db push --db-url postgresql://postgres:postgres@localhost:54322/postgres
    ```
@@ -209,7 +209,7 @@ These are accessible via the footer in the web portal and Settings screen in the
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+Please read [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 

@@ -12,7 +12,7 @@
     "analyze:security": "node .hermes/scripts/analyze-workspace.js --security",
     "analyze:json": "node .hermes/scripts/analyze-workspace.js --json",
     "analyze:save": "node .hermes/scripts/analyze-workspace.js --save",
-    "db:migrate": "echo \"Run COMPLETE_MIGRATION_v2.1.sql in Supabase SQL Editor\"",
+    "db:migrate": "echo \"Run migrations/COMPLETE_MIGRATION_v2.1.sql in Supabase SQL Editor\"",
     "db:verify": "node .hermes/scripts/analyze-workspace.js --db",
     "build:web": "cd hospital_web && npm run build",
     "build:app": "cd donor_app && npx expo export --platform web",
